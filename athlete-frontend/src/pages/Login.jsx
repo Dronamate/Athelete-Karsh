@@ -111,7 +111,7 @@ export default function Login() {
         <div className="flex justify-center mb-6">
           <div className="bg-amber-500 text-slate-900 w-12 h-12 rounded-xl flex items-center justify-center text-2xl font-bold shadow-lg shadow-amber-500/20">D</div>
         </div>
-        <h2 className="text-3xl font-bold text-white text-center mb-6 tracking-tight">Log in to DronaMeet</h2>
+        <h2 className="text-3xl font-bold text-white text-center mb-6 tracking-tight">Log in to DronaMate</h2>
         
         {/* Display error message if the API rejects the credentials */}
         {error && (

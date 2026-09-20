@@ -215,7 +215,7 @@ export default function AthleteDashboard() {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID, // Use real key from .env
         amount: selectedSlot.price * 100, // Amount in paise
         currency: 'INR',
-        name: 'DronaMeet Athlete Platform',
+        name: 'DronaMate Athlete Platform',
         description: `Coaching Session with ${selectedSlot.professional_name}`,
         order_id: bookingData.razorpay_order_id, // The ID generated securely by Django
         

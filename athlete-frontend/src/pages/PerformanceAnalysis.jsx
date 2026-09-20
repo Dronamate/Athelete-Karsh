@@ -188,7 +188,7 @@ export default function PerformanceAnalysis() {
               </div>
               <button
                 onClick={generateInsights}
-                className="mt-6 w-full bg-slate-800 text-white font-medium py-3 px-4 rounded-xl hover:bg-slate-700 transition"
+                className="mt-6 w-full bg-black-800 text-white font-medium py-3 px-4 rounded-xl hover:bg-slate-700 transition"
               >
                 Refresh Analysis
               </button>

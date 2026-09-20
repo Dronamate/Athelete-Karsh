@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="col-span-1 md:col-span-1">
           <Link to="/" className="text-2xl font-bold text-amber-500 tracking-tight">
-            DronaMeet
+            DronaMate
           </Link>
           <p className="mt-4 text-sm text-slate-500">
             Master your craft with the world's leading coaches and experts. The ultimate platform for 1-on-1 mentorship and scalable group masterclasses.
@@ -41,7 +41,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-slate-800 text-sm text-center">
-        &copy; {new Date().getFullYear()} DronaMeet Inc. All rights reserved.
+        &copy; {new Date().getFullYear()} DronaMate Inc. All rights reserved.
       </div>
     </footer>
   );
