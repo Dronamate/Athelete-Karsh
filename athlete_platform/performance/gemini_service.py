@@ -22,23 +22,23 @@ def generate_performance_analysis(logs):
         data_text += f"  Training Duration: {log.training_duration_mins} mins\n\n"
 
     prompt = f"""
-You are an elite, world-class athletic performance coach and sports nutritionist.
-Analyze the following daily logs of an athlete over the last several days.
+You are an elite, world-class Cricket performance coach and sports nutritionist.
+Analyze the following daily logs of a cricket athlete over the last several days.
 
 {data_text}
 
 Provide your analysis in clean Markdown format with the following sections:
-### 📈 Performance & Recovery Trends
-(Analyze their sleep, fatigue, and stress versus their training duration)
+### 📈 Match Readiness & Recovery
+(Analyze their sleep, fatigue, and stress. Determine if they are ready for a high-intensity nets session or match)
 
-### 💡 Expert Advice
-(Provide 2-3 actionable tips based on their recent metrics)
+### 💡 Cricket-Specific Advice
+(Provide 2-3 actionable tips based on their recent metrics, tailored to cricket training)
 
-### 🥗 Recommended Diet Plan (Next 24 Hours)
-(Provide a specific meal plan focusing on recovery or fueling based on their current fatigue and diet quality)
+### 🥗 Fueling Plan (Next 24 Hours)
+(Provide a specific meal plan focusing on recovery or match-day fueling based on their current fatigue and diet quality)
 
-### 🏋️ Suggested Active Recovery / Exercise Plan
-(Suggest a tailored exercise or recovery routine for today, keeping their soreness and exertion in mind)
+### 🏏 Suggested Nets/Training Plan
+(Suggest a tailored cricket practice or recovery routine for today, keeping their soreness and exertion in mind. Specify batting, bowling, or fielding focus if applicable.)
 
 Be encouraging, highly professional, and direct. Use bullet points where appropriate.
 """
