@@ -30,9 +30,8 @@ export default function Navbar() {
           
           {/* Left Side: Brand Logo / Name */}
           <div className="flex items-center">
-            <Link to={token ? getDashboardLink() : "/"} className="text-2xl font-bold text-orange-500 tracking-tight hover:text-orange-400 transition flex items-center gap-2">
-              <span className="bg-orange-500 text-slate-900 w-8 h-8 rounded-lg flex items-center justify-center text-lg shadow-sm font-extrabold">D</span>
-              DronaMate
+            <Link to={token ? getDashboardLink() : "/"} className="flex items-center gap-2 transition hover:opacity-80 bg-white px-3 py-1 rounded-lg shadow-sm">
+              <img src="/logo.png" alt="DronaMate Logo" className="h-10 w-auto" />
             </Link>
           </div>
           
