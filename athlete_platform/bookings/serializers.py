@@ -37,22 +37,24 @@ class AvailabilitySlotSerializer(serializers.ModelSerializer):
         except Exception:
             return "General Coach"
 
-# bookings/serializers.py
-
 class BookingSerializer(serializers.ModelSerializer):
     slot_details = AvailabilitySlotSerializer(source='slot', read_only=True)
     athlete_name = serializers.CharField(source='athlete.username', read_only=True)
     has_reviewed = serializers.SerializerMethodField()
+    date = serializers.CharField(source='slot.date', read_only=True)
+    start_time = serializers.CharField(source='slot.start_time', read_only=True)
+    end_time = serializers.CharField(source='slot.end_time', read_only=True)
+    session_type = serializers.CharField(source='slot.session_type', read_only=True)
+    meeting_link_or_address = serializers.CharField(source='slot.meeting_link_or_address', read_only=True)
 
     class Meta:
         model = Booking
         fields = [
             'id', 'athlete', 'athlete_name', 'slot', 'slot_details', 'current_goal', 
             'past_injury', 'payment_status', 'razorpay_order_id', 
-            'created_at', 'has_reviewed'
+            'created_at', 'has_reviewed', 'date', 'start_time', 'end_time', 'session_type', 'meeting_link_or_address'
         ]
-        # Tell DRF to ignore these fields during the incoming POST request
-        read_only_fields = ['athlete', 'payment_status', 'razorpay_order_id', 'has_reviewed'] 
+        read_only_fields = ['athlete', 'payment_status', 'razorpay_order_id', 'has_reviewed', 'date', 'start_time', 'end_time', 'session_type', 'meeting_link_or_address'] 
 
     def get_has_reviewed(self, obj):
         return hasattr(obj, 'review')
@@ -68,5 +70,4 @@ class ReviewSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'user', 'title', 'message', 'is_read', 'created_at']
-        read_only_fields = ['user', 'title', 'message', 'created_at']
+        fields = ['id', 'user', 'message', 'is_read', 'created_at']

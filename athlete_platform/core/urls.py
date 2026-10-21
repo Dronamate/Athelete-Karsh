@@ -4,20 +4,19 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
-# Import our new views
+
+# Import views
 from sports.views import SportViewSet, SpecialtyViewSet
-from bookings.views import AvailabilitySlotViewSet, BookingViewSet, NotificationViewSet
+from bookings.views import AvailabilitySlotViewSet, BookingViewSet, NotificationViewSet, ReviewViewSet
 from accounts.views import UserProfileView, AdminUserViewSet, GoogleLogin
 from learning.views import ModuleViewSet
 from chat.views import ConversationViewSet, MessageViewSet
-from performance.views import DailyLogViewSet
-from bookings.views import ReviewViewSet
+from performance.views import DailyLogViewSet, CricketPerformanceViewSet
 
 # 1. Initialize the Router
 router = DefaultRouter()
 
-# 2. Register the endpoints
-# This automatically creates /api/sports/, /api/specialties/, etc.
+# 2. Register endpoints
 router.register(r'sports', SportViewSet, basename='sport')
 router.register(r'specialties', SpecialtyViewSet, basename='specialty')
 router.register(r'slots', AvailabilitySlotViewSet, basename='slot')
@@ -27,6 +26,7 @@ router.register(r'learning', ModuleViewSet, basename='learning-module')
 router.register(r'conversations', ConversationViewSet, basename='conversation')
 router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'performance', DailyLogViewSet, basename='performance')
+router.register(r'cricket-stats', CricketPerformanceViewSet, basename='cricket-stats')
 router.register(r'reviews', ReviewViewSet, basename='review')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 
@@ -36,7 +36,7 @@ urlpatterns = [
     # Standard Login / Logout / Password API endpoints
     path('api/auth/', include('dj_rest_auth.urls')),
     
-    # ADD THIS LINE FOR REGISTRATION:
+    # Registration endpoint
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     
     # Required by allauth to resolve socialaccount_signup
@@ -45,10 +45,10 @@ urlpatterns = [
     # Google OAuth Endpoint
     path('api/auth/google/', GoogleLogin.as_view(), name='google_login'),
     
-    # Your Custom Profile Endpoint
+    # Custom Profile Endpoint
     path('api/profile/', UserProfileView.as_view(), name='user-profile'),
     
-    # Your API router endpoints (sports, specialties, slots, bookings)
+    # API router endpoints
     path('api/', include(router.urls)),
 ]
 

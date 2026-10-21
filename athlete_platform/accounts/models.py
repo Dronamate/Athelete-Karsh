@@ -32,39 +32,52 @@ class CustomUser(AbstractUser):
         help_text="Designates the user's permissions and dashboard access."
     )
 
-    # 3. We can add additional fields here later if they apply to EVERY user,
-    # but specific details (like a Coach's specialty) will go in separate Profile models.
-    
     def __str__(self):
-        # Returns the username and their role for easy reading in the admin panel
         return f"{self.username} - {self.role}"
-    
 
 
 class AthleteProfile(models.Model):
     """
-    Stores data specific to Athletes. 
+    Stores data specific to Athletes, specifically geared toward Cricket profiles (Batsman, Bowler, All-rounder).
     Linked One-to-One with the CustomUser model.
     """
-    # Link to the core auth user
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='athlete_profile')
     
-    # Athlete-specific fields based on the PRD
+    # Personal & Cricket Profile Details
     date_of_birth = models.DateField(null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True, help_text="Age in years")
     gender = models.CharField(max_length=10, blank=True)
     city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100, blank=True)
     preferred_language = models.CharField(max_length=50, blank=True)
-    primary_sport = models.CharField(max_length=50, blank=True)
-    playing_role = models.CharField(max_length=50, blank=True)
+    
+    # Cricket Roles & Attributes
+    primary_sport = models.CharField(max_length=50, blank=True, default='Cricket')
+    playing_role = models.CharField(max_length=50, blank=True, default='Batsman', help_text="Primary role (e.g. Batsman, Bowler, All-rounder, Wicket-keeper)")
+    secondary_role = models.CharField(max_length=50, blank=True, default='Bowler', help_text="Secondary role (e.g. Bowler, Wicket-keeper, None)")
+    club_name = models.CharField(max_length=150, blank=True, default='', help_text="Current club or academy name")
+    height = models.CharField(max_length=30, blank=True, default='', help_text="Height e.g. 178 cm or 5'10\"")
+    weight = models.CharField(max_length=30, blank=True, default='', help_text="Weight e.g. 72 kg")
+    batting_hand = models.CharField(
+        max_length=30, 
+        blank=True, 
+        default='Right-hand bat',
+        choices=[('Right-hand bat', 'Right-hand bat'), ('Left-hand bat', 'Left-hand bat')]
+    )
+    bowling_style = models.CharField(max_length=60, blank=True, default='', help_text="e.g. Right-arm medium fast, Off-spin, Leg-break")
+    preferred_position = models.CharField(
+        max_length=60, 
+        blank=True, 
+        default='Top-Order Batsman',
+        help_text="e.g. Opener, Top-Order (No. 3), Middle-Order (No. 4-5), Finisher"
+    )
     
     # Timestamps for tracking when the profile was created/updated
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Athlete Profile: {self.user.username}"
-
+        return f"Athlete Profile: {self.user.username} ({self.playing_role})"
 
 
 class ProfessionalProfile(models.Model):
@@ -74,7 +87,6 @@ class ProfessionalProfile(models.Model):
     """
     user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name='professional_profile')
     
-    # REPLACE the old CharField with this ForeignKey:
     speciality = models.ForeignKey(
         'sports.Specialty', 
         on_delete=models.SET_NULL, 

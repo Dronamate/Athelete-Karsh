@@ -9,7 +9,25 @@ export default function Profile() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const [formData, setFormData] = useState({
-    first_name: '', last_name: '', email: '', role: '', dob: '', blood_type: ''
+    first_name: '',
+    last_name: '',
+    email: '',
+    role: '',
+    dob: '',
+    blood_type: '',
+    // Cricket / Athlete fields
+    age: '',
+    city: '',
+    state: '',
+    primary_sport: 'Cricket',
+    playing_role: 'Batsman',
+    secondary_role: 'Bowler',
+    club_name: '',
+    height: '',
+    weight: '',
+    batting_hand: 'Right-hand bat',
+    bowling_style: 'Right-arm medium fast',
+    preferred_position: 'Top-Order Batsman'
   });
   
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -27,16 +45,30 @@ export default function Profile() {
     try {
       const response = await api.get('profile/');
       const data = response.data;
+      const ap = data.athlete_profile || {};
+
       setFormData({
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
         role: data.role || '',
-        dob: data.dob || '',
-        blood_type: data.blood_type || ''
+        dob: data.dob || ap.date_of_birth || '',
+        blood_type: data.blood_type || '',
+        // Athlete profile
+        age: ap.age || '',
+        city: ap.city || '',
+        state: ap.state || '',
+        primary_sport: ap.primary_sport || 'Cricket',
+        playing_role: ap.playing_role || 'Batsman',
+        secondary_role: ap.secondary_role || 'Bowler',
+        club_name: ap.club_name || '',
+        height: ap.height || '',
+        weight: ap.weight || '',
+        batting_hand: ap.batting_hand || 'Right-hand bat',
+        bowling_style: ap.bowling_style || 'Right-arm medium fast',
+        preferred_position: ap.preferred_position || 'Top-Order Batsman'
       });
       
-      // FIX: Ensure the avatar URL points to the Django backend, not the React frontend
       let avatarUrl = data.avatar;
       if (avatarUrl && !avatarUrl.startsWith('http')) {
         const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'http://127.0.0.1:8000';
@@ -52,11 +84,11 @@ export default function Profile() {
   };
 
   const calculateProgress = () => {
-    const fields = ['first_name', 'last_name', 'email', 'dob', 'blood_type'];
+    const fields = ['first_name', 'last_name', 'email', 'playing_role', 'club_name', 'batting_hand', 'preferred_position'];
     let filled = 0;
     fields.forEach(f => { if (formData[f]) filled++; });
     if (avatarPreview || selectedFile) filled++; 
-    return Math.round((filled / 6) * 100);
+    return Math.min(100, Math.round((filled / 8) * 100));
   };
 
   const progress = calculateProgress();
@@ -90,12 +122,28 @@ export default function Profile() {
       if (formData.blood_type) submitData.append('blood_type', formData.blood_type);
       if (selectedFile) submitData.append('avatar', selectedFile);
 
+      if (formData.role === 'ATHLETE') {
+        if (formData.age) submitData.append('age', formData.age);
+        if (formData.city) submitData.append('city', formData.city);
+        if (formData.state) submitData.append('state', formData.state);
+        submitData.append('primary_sport', formData.primary_sport);
+        submitData.append('playing_role', formData.playing_role);
+        submitData.append('secondary_role', formData.secondary_role);
+        submitData.append('club_name', formData.club_name);
+        submitData.append('height', formData.height);
+        submitData.append('weight', formData.weight);
+        submitData.append('batting_hand', formData.batting_hand);
+        submitData.append('bowling_style', formData.bowling_style);
+        submitData.append('preferred_position', formData.preferred_position);
+      }
+
       await api.patch('profile/', submitData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
       setSuccessMsg('Profile details updated successfully!');
       setSelectedFile(null);
+      fetchProfile();
     } catch (error) {
       console.error(error);
       setErrorMsg('Failed to update profile.');
@@ -119,110 +167,220 @@ export default function Profile() {
   if (loading) return <div className="p-8 text-center text-slate-500">Loading Account Data...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-8">
+    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 selection:bg-orange-500 selection:text-slate-900">
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
         
-        <div className="w-full md:w-1/3 bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center h-fit">
+        {/* Left Side: Avatar Card */}
+        <div className="w-full md:w-1/3 bg-slate-900 p-6 rounded-2xl shadow-lg border border-slate-800 flex flex-col items-center h-fit">
           <div className="relative mb-4 group cursor-pointer">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-100 bg-slate-200">
+            <div className="w-36 h-36 rounded-2xl overflow-hidden border-4 border-slate-800 bg-slate-800 shadow-xl flex items-center justify-center">
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-400 text-4xl">👤</div>
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-4xl">
+                  <span>🏏</span>
+                  <span className="text-xs text-slate-400 mt-2 font-semibold">Upload Photo</span>
+                </div>
               )}
             </div>
             <input type="file" id="avatarUpload" accept="image/*" className="hidden" onChange={handleFileChange} />
-            <label htmlFor="avatarUpload" className="absolute bottom-0 right-0 bg-amber-600 text-white p-2 rounded-full shadow cursor-pointer hover:bg-amber-700 transition">
+            <label htmlFor="avatarUpload" className="absolute -bottom-2 -right-2 bg-orange-500 text-white p-2.5 rounded-xl shadow-lg cursor-pointer hover:bg-orange-600 transition">
               📷
             </label>
           </div>
           
-          <h2 className="text-xl font-bold text-slate-800">{formData.first_name || 'User'} {formData.last_name}</h2>
-          <p className="text-amber-600 font-bold text-sm mb-6 uppercase">{formData.role}</p>
+          <h2 className="text-xl font-bold text-white text-center">{formData.first_name || 'Athlete'} {formData.last_name}</h2>
+          <div className="flex items-center gap-2 mt-1 mb-4">
+            <span className="bg-orange-500/10 border border-orange-500/30 text-orange-400 px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">
+              {formData.playing_role || formData.role}
+            </span>
+            {formData.club_name && (
+              <span className="bg-slate-800 text-slate-400 text-xs px-2.5 py-0.5 rounded-full font-medium">
+                {formData.club_name}
+              </span>
+            )}
+          </div>
 
-          <div className="w-full">
-            <div className="flex justify-between text-sm font-bold text-slate-600 mb-2">
-              <span>Profile Completion</span>
-              <span>{progress}%</span>
+          <div className="w-full bg-slate-800/60 p-4 rounded-xl border border-slate-800 mt-2 space-y-2 text-xs">
+            <div className="flex justify-between text-slate-400">
+              <span>Primary Role</span>
+              <span className="font-semibold text-white">{formData.playing_role}</span>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-2.5">
-              <div className="bg-amber-500 h-2.5 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+            <div className="flex justify-between text-slate-400">
+              <span>Secondary Role</span>
+              <span className="font-semibold text-white">{formData.secondary_role || 'None'}</span>
+            </div>
+            <div className="flex justify-between text-slate-400">
+              <span>Batting Hand</span>
+              <span className="font-semibold text-white">{formData.batting_hand}</span>
+            </div>
+            <div className="flex justify-between text-slate-400">
+              <span>Position</span>
+              <span className="font-semibold text-white">{formData.preferred_position}</span>
+            </div>
+          </div>
+
+          <div className="w-full mt-6">
+            <div className="flex justify-between text-xs font-bold text-slate-400 mb-2">
+              <span>Profile Completion</span>
+              <span className="text-orange-400">{progress}%</span>
+            </div>
+            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div className="bg-gradient-to-r from-orange-500 to-amber-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
             </div>
           </div>
         </div>
 
-        <div className="w-full md:w-2/3 bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-200">
-          <div className="flex border-b mb-6 space-x-6">
+        {/* Right Side: Form Tabs */}
+        <div className="w-full md:w-2/3 bg-slate-900 p-6 md:p-8 rounded-2xl shadow-lg border border-slate-800">
+          <div className="flex border-b border-slate-800 mb-6 space-x-6">
             <button 
-              className={`pb-3 font-bold transition ${activeTab === 'details' ? 'border-b-2 border-amber-600 text-amber-600' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`pb-3 font-bold transition text-sm ${activeTab === 'details' ? 'border-b-2 border-orange-500 text-orange-400' : 'text-slate-400 hover:text-slate-200'}`}
               onClick={() => { setActiveTab('details'); setSuccessMsg(''); setErrorMsg(''); }}
             >
-              Personal Info
+              Athlete Information
             </button>
             <button 
-              className={`pb-3 font-bold transition ${activeTab === 'security' ? 'border-b-2 border-amber-600 text-amber-600' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`pb-3 font-bold transition text-sm ${activeTab === 'security' ? 'border-b-2 border-orange-500 text-orange-400' : 'text-slate-400 hover:text-slate-200'}`}
               onClick={() => { setActiveTab('security'); setSuccessMsg(''); setErrorMsg(''); }}
             >
-              Security
+              Security & Password
             </button>
           </div>
 
-          {successMsg && <div className="mb-6 p-4 bg-amber-50 text-amber-700 rounded-lg font-medium border border-amber-200">✓ {successMsg}</div>}
-          {errorMsg && <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg font-medium border border-red-200">⚠ {errorMsg}</div>}
+          {successMsg && <div className="mb-6 p-4 bg-emerald-500/10 text-emerald-400 rounded-xl font-medium border border-emerald-500/20 text-sm">✓ {successMsg}</div>}
+          {errorMsg && <div className="mb-6 p-4 bg-red-500/10 text-red-400 rounded-xl font-medium border border-red-500/20 text-sm">⚠ {errorMsg}</div>}
 
           {activeTab === 'details' && (
-            <form onSubmit={handleProfileSubmit} className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">First Name</label>
-                  <input type="text" name="first_name" value={formData.first_name} onChange={handleProfileChange} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Last Name</label>
-                  <input type="text" name="last_name" value={formData.last_name} onChange={handleProfileChange} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
-                </div>
-              </div>
-
+            <form onSubmit={handleProfileSubmit} className="space-y-6">
+              
+              {/* Section 1: Basic Identity */}
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Email</label>
-                <input type="email" name="email" value={formData.email} onChange={handleProfileChange} className="w-full px-3 py-2 border rounded bg-slate-50 focus:ring-2 focus:ring-amber-500" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">1. Personal Identity</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">First Name</label>
+                    <input type="text" name="first_name" value={formData.first_name} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Last Name</label>
+                    <input type="text" name="last_name" value={formData.last_name} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Email</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-300 focus:outline-none text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Club / Academy Name</label>
+                    <input type="text" name="club_name" value={formData.club_name} onChange={handleProfileChange} placeholder="e.g. City Cricket Club" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Date of Birth</label>
-                  <input type="date" name="dob" value={formData.dob} onChange={handleProfileChange} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Blood Type</label>
-                  <select name="blood_type" value={formData.blood_type} onChange={handleProfileChange} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500">
-                    <option value="">Select Type...</option>
-                    {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
+              {/* Section 2: Physical & Age */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">2. Physical Attributes</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Age</label>
+                    <input type="number" name="age" value={formData.age} onChange={handleProfileChange} placeholder="e.g. 21" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Height</label>
+                    <input type="text" name="height" value={formData.height} onChange={handleProfileChange} placeholder="e.g. 178 cm or 5'10&quot;" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Weight</label>
+                    <input type="text" name="weight" value={formData.weight} onChange={handleProfileChange} placeholder="e.g. 74 kg" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                  </div>
                 </div>
               </div>
 
-              <button type="submit" className="w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition">Save Details</button>
+              {/* Section 3: Cricket Specialization */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">3. Cricket Profile (Batsman Focus)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Primary Role</label>
+                    <select name="playing_role" value={formData.playing_role} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm">
+                      <option value="Batsman">Batsman</option>
+                      <option value="Wicket-keeper Batsman">Wicket-keeper Batsman</option>
+                      <option value="All-rounder">All-rounder (Batting focus)</option>
+                      <option value="Bowler">Bowler</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Secondary Role</label>
+                    <select name="secondary_role" value={formData.secondary_role} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm">
+                      <option value="Bowler">Bowler</option>
+                      <option value="Wicket-keeper">Wicket-keeper</option>
+                      <option value="All-rounder">All-rounder</option>
+                      <option value="None">None (Pure Batsman)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Batting Hand (Right / Left)</label>
+                    <select name="batting_hand" value={formData.batting_hand} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm">
+                      <option value="Right-hand bat">Right-hand bat</option>
+                      <option value="Left-hand bat">Left-hand bat</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Preferred Playing Position</label>
+                    <select name="preferred_position" value={formData.preferred_position} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm">
+                      <option value="Opener / Top-Order">Opener / Top-Order (No. 1-2)</option>
+                      <option value="Top-Order (No. 3)">Top-Order (No. 3)</option>
+                      <option value="Middle-Order (No. 4-5)">Middle-Order (No. 4-5)</option>
+                      <option value="Finisher / Lower-Order (No. 6-7)">Finisher / Lower-Order (No. 6-7)</option>
+                      <option value="Tailender">Tailender (No. 8-11)</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Bowling Style (If Applicable)</label>
+                    <input type="text" name="bowling_style" value={formData.bowling_style} onChange={handleProfileChange} placeholder="e.g. Right-arm medium fast, Off-spin, Leg-break" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 4: Location & General */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">City</label>
+                  <input type="text" name="city" value={formData.city} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">State</label>
+                  <input type="text" name="state" value={formData.state} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                </div>
+              </div>
+
+              <button type="submit" className="w-full bg-orange-500 text-white font-bold py-3.5 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-500/20 text-sm">
+                Save Profile Details
+              </button>
             </form>
           )}
 
           {activeTab === 'security' && (
             <form onSubmit={handlePasswordSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Current Password</label>
-                <input type="password" name="old_password" value={passwordData.old_password} onChange={handlePasswordChange} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Current Password</label>
+                <input type="password" name="old_password" value={passwordData.old_password} onChange={handlePasswordChange} required className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">New Password</label>
-                <input type="password" name="new_password1" value={passwordData.new_password1} onChange={handlePasswordChange} required minLength="8" className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                <label className="block text-xs font-semibold text-slate-300 mb-1">New Password</label>
+                <input type="password" name="new_password1" value={passwordData.new_password1} onChange={handlePasswordChange} required minLength="8" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Confirm New Password</label>
-                <input type="password" name="new_password2" value={passwordData.new_password2} onChange={handlePasswordChange} required minLength="8" className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Confirm New Password</label>
+                <input type="password" name="new_password2" value={passwordData.new_password2} onChange={handlePasswordChange} required minLength="8" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
               </div>
-              <button type="submit" className="w-full bg-slate-800 text-white font-bold py-3 rounded-lg hover:bg-slate-900 transition">Update Password</button>
+              <button type="submit" className="w-full bg-slate-800 text-white font-bold py-3.5 rounded-xl hover:bg-slate-700 transition border border-slate-700 text-sm">
+                Update Password
+              </button>
             </form>
           )}
 

@@ -12,6 +12,7 @@ export default function Navbar() {
   
   const handleLogout = () => {
     sessionStorage.clear();
+    setIsMobileMenuOpen(false);
     navigate('/login');
   };
 
@@ -20,7 +21,19 @@ export default function Navbar() {
     if (role === 'ATHLETE') return '/athlete';
     if (role === 'PROFESSIONAL') return '/professional';
     if (role === 'ADMIN') return '/admin';
-    return '/'; // Fallback
+    return '/';
+  };
+
+  const scrollToSection = (hash) => {
+    setIsMobileMenuOpen(false);
+    if (location.pathname === '/') {
+      const element = document.querySelector(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate('/' + hash);
+    }
   };
 
   return (
@@ -28,10 +41,14 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
-          {/* Left Side: Brand Logo / Name */}
+          {/* Left Side: Brand Logo */}
           <div className="flex items-center">
-            <Link to={token ? getDashboardLink() : "/"} className="flex items-center gap-2 transition hover:opacity-80 bg-white px-3 py-1 rounded-lg shadow-sm">
-              <img src="/logo.png" alt="DronaMate Logo" className="h-10 w-auto" />
+            <Link 
+              to={token ? getDashboardLink() : "/"} 
+              className="flex items-center gap-2 transition hover:opacity-90 bg-white px-3 py-1.5 rounded-lg shadow-sm"
+              title="DronaMate Home"
+            >
+              <img src="/logo.png" alt="DronaMate Logo" className="h-9 w-auto" />
             </Link>
           </div>
           
@@ -39,7 +56,8 @@ export default function Navbar() {
           <div className="flex md:hidden">
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-slate-300 hover:text-white focus:outline-none"
+              className="text-slate-300 hover:text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 min-h-[44px] min-w-[44px] flex items-center justify-center"
+              aria-label="Toggle navigation menu"
             >
               <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
@@ -55,40 +73,63 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-6">
             {!token ? (
               <>
-                <Link to="/" className="text-slate-300 hover:text-orange-500 transition font-medium text-sm">For Athletes</Link>
-                <Link to="/" className="text-slate-300 hover:text-orange-500 transition font-medium text-sm">For Coaches</Link>
-                <Link to="/" className="text-slate-300 hover:text-orange-500 transition font-medium text-sm">Performance</Link>
-                <Link to="/" className="text-slate-300 hover:text-orange-500 transition font-medium text-sm">About</Link>
-                <div className="h-6 w-px bg-slate-700 mx-2"></div>
-                <Link to="/login" className="text-slate-300 hover:text-orange-500 transition font-semibold text-sm">
+                <button 
+                  onClick={() => scrollToSection('#athletes')} 
+                  className="text-slate-300 hover:text-orange-400 transition font-medium text-sm"
+                >
+                  For Athletes
+                </button>
+                <button 
+                  onClick={() => scrollToSection('#coaches')} 
+                  className="text-slate-300 hover:text-orange-400 transition font-medium text-sm"
+                >
+                  For Coaches
+                </button>
+                <button 
+                  onClick={() => scrollToSection('#performance')} 
+                  className="text-slate-300 hover:text-orange-400 transition font-medium text-sm"
+                >
+                  Performance
+                </button>
+                <button 
+                  onClick={() => scrollToSection('#about')} 
+                  className="text-slate-300 hover:text-orange-400 transition font-medium text-sm"
+                >
+                  About
+                </button>
+                <div className="h-6 w-px bg-slate-800 mx-2"></div>
+                <Link to="/login" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
                   Login
                 </Link>
-                <Link to="/register" className="bg-orange-500 text-white hover:bg-orange-600 px-5 py-2 rounded-full text-sm font-bold transition shadow-md shadow-orange-500/20">
+                <Link 
+                  to="/register" 
+                  className="bg-orange-500 text-white hover:bg-orange-600 px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-md shadow-orange-500/20"
+                >
                   Get Started
                 </Link>
               </>
             ) : (
               <>
-                <Link to={getDashboardLink()} className="text-slate-300 hover:text-orange-500 transition font-semibold text-sm">
+                <Link to={getDashboardLink()} className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
                   Dashboard
                 </Link>
-                <Link to="/learning" className="text-slate-300 hover:text-orange-500 transition font-semibold text-sm">
-                  Learning Hub
+                <Link to="/performance" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
+                  Batsman Card
                 </Link>
-                <Link to="/chat" className="text-slate-300 hover:text-orange-500 transition font-semibold text-sm">
+                <Link to="/chat" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
                   Messages
                 </Link>
                 {role === 'ADMIN' && (
-                  <Link to="/admin" className="text-slate-300 hover:text-orange-500 transition font-semibold text-sm">
+                  <Link to="/admin" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
                     Control Center
                   </Link>
                 )}
-                <Link to="/profile" className="text-slate-300 hover:text-orange-500 transition font-semibold text-sm">
+                <Link to="/profile" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
                   Account
                 </Link>
                 <button 
                   onClick={handleLogout}
-                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2 rounded-full text-sm font-bold transition shadow-sm"
+                  className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition shadow-sm"
                 >
                   Log Out
                 </button>
@@ -100,36 +141,94 @@ export default function Navbar() {
 
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-slate-800 border-b border-slate-700 absolute w-full shadow-xl">
-          <div className="px-4 pt-2 pb-6 space-y-2 flex flex-col">
+        <div className="md:hidden bg-slate-900 border-b border-slate-800 absolute w-full shadow-2xl z-50">
+          <div className="px-4 pt-3 pb-6 space-y-1 flex flex-col">
             {!token ? (
               <>
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 hover:bg-slate-700/50 rounded-md font-medium">For Athletes</Link>
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 hover:bg-slate-700/50 rounded-md font-medium">For Coaches</Link>
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 hover:bg-slate-700/50 rounded-md font-medium">Performance</Link>
-                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 hover:bg-slate-700/50 rounded-md font-medium">About</Link>
-                <hr className="border-slate-700 my-2" />
-                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 font-semibold">
+                <button 
+                  onClick={() => scrollToSection('#athletes')} 
+                  className="text-left w-full px-4 py-3 text-slate-300 hover:text-orange-400 hover:bg-slate-800/80 rounded-xl font-medium min-h-[44px]"
+                >
+                  For Athletes
+                </button>
+                <button 
+                  onClick={() => scrollToSection('#coaches')} 
+                  className="text-left w-full px-4 py-3 text-slate-300 hover:text-orange-400 hover:bg-slate-800/80 rounded-xl font-medium min-h-[44px]"
+                >
+                  For Coaches
+                </button>
+                <button 
+                  onClick={() => scrollToSection('#performance')} 
+                  className="text-left w-full px-4 py-3 text-slate-300 hover:text-orange-400 hover:bg-slate-800/80 rounded-xl font-medium min-h-[44px]"
+                >
+                  Performance
+                </button>
+                <button 
+                  onClick={() => scrollToSection('#about')} 
+                  className="text-left w-full px-4 py-3 text-slate-300 hover:text-orange-400 hover:bg-slate-800/80 rounded-xl font-medium min-h-[44px]"
+                >
+                  About
+                </button>
+                <hr className="border-slate-800 my-2" />
+                <Link 
+                  to="/login" 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="block px-4 py-3 text-slate-300 hover:text-orange-400 font-semibold min-h-[44px]"
+                >
                   Login
                 </Link>
-                <Link to="/register" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-center bg-orange-500 text-white rounded-lg font-bold mt-2">
+                <Link 
+                  to="/register" 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="block px-4 py-3 text-center bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold mt-2 shadow-md min-h-[44px] flex items-center justify-center"
+                >
                   Get Started
                 </Link>
               </>
             ) : (
               <>
-                <Link to={getDashboardLink()} onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 rounded-md font-medium">Dashboard</Link>
-                <Link to="/learning" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 rounded-md font-medium">Learning Hub</Link>
-                <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 rounded-md font-medium">Messages</Link>
-                <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="block px-3 py-3 text-slate-300 hover:text-orange-500 rounded-md font-medium">Account</Link>
+                <Link 
+                  to={getDashboardLink()} 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  to="/performance" 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
+                >
+                  Batsman Card
+                </Link>
+                <Link 
+                  to="/chat" 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
+                >
+                  Messages
+                </Link>
+                <Link 
+                  to="/profile" 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
+                >
+                  Account Profile
+                </Link>
                 <button 
-                  onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }}
-                  className="w-full text-left px-3 py-3 mt-2 text-white bg-slate-700 rounded-md font-bold"
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-3 mt-2 text-white bg-slate-800 hover:bg-slate-700 rounded-xl font-bold min-h-[44px]"
                 >
                   Log Out
                 </button>
               </>
             )}
+
+            {/* Mobile Contact Quick Access */}
+            <div className="pt-4 mt-2 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 px-4">
+              <a href="tel:+919368029835" className="text-orange-400 font-mono">📞 +91 93680 29835</a>
+              <a href="mailto:support@dronamate.in" className="hover:underline">support@dronamate.in</a>
+            </div>
           </div>
         </div>
       )}

@@ -46,6 +46,10 @@ export default function AthleteDashboard() {
     notes: ''
   });
 
+  // Cricket Stats State
+  const [cricketStats, setCricketStats] = useState(null);
+  const [athleteProfile, setAthleteProfile] = useState(null);
+
   // Review State
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedBookingForReview, setSelectedBookingForReview] = useState(null);
@@ -75,6 +79,7 @@ export default function AthleteDashboard() {
     fetchPerformanceLogs();
     fetchNotifications();
     fetchSpecialties();
+    fetchCricketData();
 
     // Poll for notifications every 10 seconds
     const intervalId = setInterval(() => {
@@ -84,6 +89,19 @@ export default function AthleteDashboard() {
 
     return () => clearInterval(intervalId);
   }, []);
+
+  const fetchCricketData = async () => {
+    try {
+      const [statsRes, profRes] = await Promise.all([
+        api.get('cricket-stats/my_stats/').catch(() => ({ data: null })),
+        api.get('profile/').catch(() => ({ data: null }))
+      ]);
+      if (statsRes?.data) setCricketStats(statsRes.data);
+      if (profRes?.data) setAthleteProfile(profRes.data);
+    } catch (err) {
+      console.error('Failed to load cricket stats:', err);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -337,6 +355,99 @@ export default function AthleteDashboard() {
         {/* TAB 1: MY BOOKINGS */}
         {activeTab === 'performance' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cricket Batsman Spotlight Card */}
+            <div className="lg:col-span-3 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 rounded-2xl p-6 text-white shadow-xl border border-slate-800">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4 mb-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center text-2xl border border-orange-500/30">
+                    🏏
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg font-bold text-white">Cricket Batsman Profile</h2>
+                      <span className="bg-orange-500/20 text-orange-400 border border-orange-500/40 text-xs font-bold px-2 py-0.5 rounded">
+                        {athleteProfile?.athlete_profile?.playing_role || 'Batsman'}
+                      </span>
+                      {athleteProfile?.athlete_profile?.club_name && (
+                        <span className="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded border border-slate-700">
+                          🏛️ {athleteProfile.athlete_profile.club_name}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {athleteProfile?.athlete_profile?.preferred_position || 'Top-Order Batsman'} • {athleteProfile?.athlete_profile?.batting_hand || 'Right-hand bat'}
+                      {athleteProfile?.athlete_profile?.age && ` • Age: ${athleteProfile.athlete_profile.age}`}
+                      {athleteProfile?.athlete_profile?.height && ` • Height: ${athleteProfile.athlete_profile.height}`}
+                      {athleteProfile?.athlete_profile?.weight && ` • Weight: ${athleteProfile.athlete_profile.weight}`}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => navigate('/performance')}
+                  className="bg-orange-500 hover:bg-orange-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg shadow-orange-500/20 flex items-center gap-1.5"
+                >
+                  <span>⚡</span> Full Performance Engine & AI Coach →
+                </button>
+              </div>
+
+              {/* Match Stats Row */}
+              <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5 mb-4 text-center">
+                <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Matches / Inn</p>
+                  <p className="text-base font-black text-white">{cricketStats?.matches_played || 0} / {cricketStats?.innings || 0}</p>
+                </div>
+                <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Runs Scored</p>
+                  <p className="text-base font-black text-orange-400">{cricketStats?.runs_made || 0}</p>
+                </div>
+                <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Batting Avg</p>
+                  <p className="text-base font-black text-emerald-400">{cricketStats?.batting_average || '0.00'}</p>
+                </div>
+                <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Strike Rate</p>
+                  <p className="text-base font-black text-cyan-400">{cricketStats?.strike_rate || '0.00'}</p>
+                </div>
+                <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">100s / 50s</p>
+                  <p className="text-base font-black text-white">{cricketStats?.centuries || 0} / {cricketStats?.half_centuries || 0}</p>
+                </div>
+                <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700/60">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">4s / 6s</p>
+                  <p className="text-base font-black text-amber-400">{cricketStats?.fours || 0} / {cricketStats?.sixes || 0}</p>
+                </div>
+              </div>
+
+              {/* Pace vs Spin Splits */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div className="bg-slate-950/60 p-3 rounded-xl border border-orange-500/20">
+                  <div className="font-bold text-orange-400 flex items-center justify-between mb-2">
+                    <span>⚡ Against Medium Fast (Pace)</span>
+                    <span className="text-cyan-400 font-bold">SR: {cricketStats?.sr_medium_fast || '0.00'}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-slate-300 text-[11px]">
+                    <div>Balls: <strong className="text-white">{cricketStats?.balls_faced_medium_fast || 0}</strong></div>
+                    <div>Runs: <strong className="text-orange-400">{cricketStats?.runs_scored_medium_fast || 0}</strong></div>
+                    <div>Outs: <strong className="text-red-400">{cricketStats?.dismissals_medium_fast || 0}</strong></div>
+                    <div>Avg: <strong className="text-emerald-400">{cricketStats?.avg_medium_fast || '0.00'}</strong></div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/60 p-3 rounded-xl border border-cyan-500/20">
+                  <div className="font-bold text-cyan-400 flex items-center justify-between mb-2">
+                    <span>🌀 Against Spin Bowlers</span>
+                    <span className="text-cyan-400 font-bold">SR: {cricketStats?.sr_spin || '0.00'}</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-slate-300 text-[11px]">
+                    <div>Balls: <strong className="text-white">{cricketStats?.balls_faced_spin || 0}</strong></div>
+                    <div>Runs: <strong className="text-cyan-400">{cricketStats?.runs_scored_spin || 0}</strong></div>
+                    <div>Outs: <strong className="text-red-400">{cricketStats?.dismissals_spin || 0}</strong></div>
+                    <div>Avg: <strong className="text-emerald-400">{cricketStats?.avg_spin || '0.00'}</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
             {/* Left: Data Entry Form */}
             <div className="bg-white p-6 rounded-xl shadow border border-slate-100">
               <h2 className="text-xl font-bold text-slate-700 mb-4">Log Daily Metrics</h2>
@@ -423,7 +534,7 @@ export default function AthleteDashboard() {
                 </button>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80">
+              <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80 min-w-0">
                 <h2 className="text-xl font-bold text-slate-700 mb-4">Fatigue vs Exertion (RPE)</h2>
                 {performanceLogs.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -442,7 +553,7 @@ export default function AthleteDashboard() {
                 )}
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80">
+              <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80 min-w-0">
                 <h2 className="text-xl font-bold text-slate-700 mb-4">Sleep vs Training Volume</h2>
                 {performanceLogs.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -462,7 +573,7 @@ export default function AthleteDashboard() {
                 )}
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80">
+              <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80 min-w-0">
                 <h2 className="text-xl font-bold text-slate-700 mb-4">Recovery: Soreness, Stress & Fatigue</h2>
                 {performanceLogs.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -483,7 +594,7 @@ export default function AthleteDashboard() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80">
+                <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80 min-w-0">
                   <h2 className="text-xl font-bold text-slate-700 mb-4">Resting Heart Rate</h2>
                   {performanceLogs.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -501,7 +612,7 @@ export default function AthleteDashboard() {
                   )}
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80">
+                <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-80 min-w-0">
                   <h2 className="text-xl font-bold text-slate-700 mb-4">Nutrition & Hydration</h2>
                   {performanceLogs.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
@@ -535,25 +646,34 @@ export default function AthleteDashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {myBookings.map(booking => (
+                {myBookings.map(booking => {
+                  const slot = booking.slot_details || {};
+                  const date = slot.date || booking.date || 'TBD';
+                  const startTime = (slot.start_time || booking.start_time || '00:00').substring(0, 5);
+                  const endTime = (slot.end_time || booking.end_time || '00:00').substring(0, 5);
+                  const sessionType = slot.session_type || booking.session_type || '1-on-1';
+                  const coachName = slot.professional_name || 'Assigned Coach';
+                  const isCancelled = slot.is_cancelled || false;
+
+                  return (
                   <div key={booking.id} className="bg-white p-6 rounded-xl shadow border border-slate-200 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start mb-4">
                         <div>
-                          <h3 className="font-bold text-lg text-slate-800">{booking.slot_details.professional_name}</h3>
-                          <p className="text-slate-500 text-sm">{booking.slot_details.session_type} Session</p>
+                          <h3 className="font-bold text-lg text-slate-800">{coachName}</h3>
+                          <p className="text-slate-500 text-sm">{sessionType} Session</p>
                         </div>
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                           booking.payment_status === 'PAID' ? 'bg-amber-100 text-amber-800' : 
                           booking.payment_status === 'REFUNDED' ? 'bg-red-100 text-red-800' : 'bg-slate-200 text-slate-800'
                         }`}>
-                          {booking.slot_details.is_cancelled ? 'CANCELLED & REFUNDED' : booking.payment_status}
+                          {isCancelled ? 'CANCELLED & REFUNDED' : booking.payment_status}
                         </span>
                       </div>
                       
                       <div className="text-slate-700 font-medium space-y-1 mb-4 bg-slate-50 p-3 rounded">
-                        <p className={booking.slot_details.is_cancelled ? "line-through text-slate-400" : ""}>📅 {booking.slot_details.date}</p>
-                        <p className={booking.slot_details.is_cancelled ? "line-through text-slate-400" : ""}>⏰ {booking.slot_details.start_time.substring(0,5)} - {booking.slot_details.end_time.substring(0,5)}</p>
+                        <p className={isCancelled ? "line-through text-slate-400" : ""}>📅 {date}</p>
+                        <p className={isCancelled ? "line-through text-slate-400" : ""}>⏰ {startTime} - {endTime}</p>
                         
                         <div className="mt-3 pt-3 border-t border-slate-200">
                           <p className="text-xs text-slate-500 font-bold uppercase mb-1">Your Details</p>
@@ -564,14 +684,14 @@ export default function AthleteDashboard() {
                     </div>
 
                     {/* Show meeting details only if they successfully paid! */}
-                    {booking.payment_status === 'PAID' && !booking.slot_details.is_cancelled && (
+                    {booking.payment_status === 'PAID' && !(booking.slot_details?.is_cancelled) && (
                        <div className="border-t pt-4">
                           <p className="text-xs text-slate-500 font-bold uppercase mb-1">Fulfillment Details</p>
-                          {booking.slot_details.session_type === 'ONLINE' ? (
+                          {(booking.slot_details?.session_type || booking.session_type) === 'ONLINE' ? (
                             <button 
                               onClick={() => {
-                                if (booking.slot_details.meeting_link_or_address) {
-                                  window.open(booking.slot_details.meeting_link_or_address, '_blank');
+                                if (booking.slot_details?.meeting_link_or_address || booking.meeting_link_or_address) {
+                                  window.open(booking.slot_details?.meeting_link_or_address || booking.meeting_link_or_address, '_blank');
                                 } else {
                                   alert("Your coach has not provided the Google Meet link yet. Please check back closer to the session time or message them.");
                                 }
@@ -604,7 +724,8 @@ export default function AthleteDashboard() {
                        </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -755,7 +876,7 @@ export default function AthleteDashboard() {
                         
                         <div className="text-slate-600 mb-6 space-y-1">
                           <p>📅 {slot.date}</p>
-                          <p>⏰ {slot.start_time.substring(0,5)} - {slot.end_time.substring(0,5)}</p>
+                          <p>⏰ {(slot.start_time || '00:00').substring(0,5)} - {(slot.end_time || '00:00').substring(0,5)}</p>
                           <p className="font-semibold text-indigo-700">
                             👥 {slot.max_capacity - slot.current_enrollments} Spots Left (Max {slot.max_capacity})
                           </p>
@@ -788,7 +909,7 @@ export default function AthleteDashboard() {
               </button>
               <h2 className="text-xl font-bold text-slate-800 mb-2">Rate Your Session</h2>
               <p className="text-sm text-slate-500 mb-4">
-                Leave a review for {selectedBookingForReview?.slot_details.professional_name}
+                Leave a review for {selectedBookingForReview?.slot_details?.professional_name || 'your coach'}
               </p>
               
               <form onSubmit={handleReviewSubmit} className="space-y-4">

@@ -2,21 +2,7 @@
 venv/
 env/
 ENV/
-
-# Python compiled files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Local Database
-db.sqlite3
-db.sqlite3-journal
-
-# Local Environment Variables & Secrets
-# Virtual Environment
-venv/
-env/
-ENV/
+athlete_platform/venv/
 
 # Python compiled files
 __pycache__/
@@ -31,8 +17,14 @@ db.sqlite3-journal
 .env
 .env.local
 
+# Frontend builds and archives
+node_modules/
+dist/
+athlete-frontend/dist/
+*.zip
+WhatsApp*
+
 # IDE / Editor folders
 .vscode/
 .idea/
 .DS_Store
-athlete-frontend/.env.production

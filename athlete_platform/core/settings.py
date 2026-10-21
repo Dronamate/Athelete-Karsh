@@ -9,19 +9,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-=14(i2h7^05-v^0*a*y9=t+f1y3$j($s#4h(_-m6e=m_y0#u1o')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h.strip()]
+ALLOWED_HOSTS += ['127.0.0.1', 'localhost', 'athelete-karsh.onrender.com', '.onrender.com', 'dronamate.in', 'www.dronamate.in', '*']
 
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
-
 
 # Application definition
 
@@ -34,7 +30,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Third-party apps
-    # Required for allauth to work properly
     'django.contrib.sites',
     
     # API Framework & Authentication
@@ -47,7 +42,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'corsheaders',  # Add this anywhere in the list
+    'corsheaders',
     'dj_rest_auth',
     'dj_rest_auth.registration',
     
@@ -61,12 +56,11 @@ INSTALLED_APPS = [
     'performance',
 ]
 
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Added for serving static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # MUST BE ADDED HERE
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -101,11 +95,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-
-
-
 # Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 import dj_database_url
 
 DATABASES = {
@@ -114,22 +104,18 @@ DATABASES = {
         conn_max_age=600
     )
 }
-# 2. Tell allauth which site ID to use
+
 SITE_ID = 1
 
-# 3. Configure REST Framework to strictly use JWTs for authentication
-
+# Configure REST Framework to strictly use JWTs for authentication
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # Used by the React frontend via tokens
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
-        
-        # Add this line so your browser session from the Admin panel works!
         'rest_framework.authentication.SessionAuthentication',
     )
 }
 
-# 4. Configure dj-rest-auth to use JWTs instead of standard tokens
+# Configure dj-rest-auth to use JWTs instead of standard tokens
 REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'my-app-auth',
@@ -137,25 +123,16 @@ REST_AUTH = {
     'JWT_AUTH_HTTPONLY': False,
     'USER_DETAILS_SERIALIZER': 'accounts.serializers.UserSerializer',
     'REGISTER_SERIALIZER': 'accounts.serializers.CustomRegisterSerializer',
-
 }
 
-# 5. Disable email verification for now (since HR creates the professional accounts)
+# Auth / Account settings
 ACCOUNT_EMAIL_VERIFICATION = 'none'
-
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
-
-
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
-ACCOUNT_EMAIL_REQUIRED = True
-# 2. Tell Django to use our custom user model (Format: 'app_name.ModelName')
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -171,47 +148,47 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# core/settings.py (at the bottom)
-
 # CORS Configuration
-# Whitelist the specific frontend URLs that are allowed to make API calls
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Standard Create React App port
+    "http://localhost:3000",
     "http://localhost:5173",
-    "http://localhost:5174",# Standard Vite React port
+    "http://localhost:5174",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "https://dronamate.in",
+    "https://www.dronamate.in",
+    "https://athelete-karsh.onrender.com",
 ]
 
-# Allow cookies to be sent across domains (vital for maintaining login sessions)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.dronamate\.in$",
+    r"^https://.*\.hostingerapp\.com$",
+    r"^https://.*\.onrender\.com$",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://athelete-karsh.onrender.com",
+    "https://dronamate.in",
+    "https://www.dronamate.in",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
-import os
-
-# Media files (Avatars, uploads)
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -219,7 +196,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            # Use environment variables for production security
             'client_id': os.environ.get('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID'),
             'secret': os.environ.get('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET'),
             'key': ''
@@ -236,11 +212,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-# Store tokens in database (SocialToken model) so backend can use them
-# Set to False because we are using settings-based APP configuration and SocialApp is not in DB
 SOCIALACCOUNT_STORE_TOKENS = False
-
-# Headless API configuration for allauth
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True

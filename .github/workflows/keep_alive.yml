@@ -1,0 +1,22 @@
+name: Keep Render Backend Alive
+
+on:
+  schedule:
+    # Runs every 12 minutes to keep the Render free tier service awake
+    - cron: '*/12 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          echo "Pinging https://athelete-karsh.onrender.com/api/sports/ to prevent sleep..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://athelete-karsh.onrender.com/api/sports/)
+          echo "Render response status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 401 ] || [ "$HTTP_STATUS" -eq 404 ]; then
+            echo "Render service is awake and responding!"
+          else
+            echo "Unexpected status code: $HTTP_STATUS"
+          fi
