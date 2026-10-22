@@ -110,23 +110,44 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link to={getDashboardLink()} className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
-                  Dashboard
-                </Link>
-                <Link to="/performance" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
-                  Batsman Card
-                </Link>
+                {/* 1. Athlete Navigation */}
+                {role === 'ATHLETE' && (
+                  <>
+                    <Link to="/athlete" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
+                      Dashboard
+                    </Link>
+                    <Link to="/performance" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
+                      Batsman Card
+                    </Link>
+                  </>
+                )}
+
+                {/* 2. Coach / Professional Navigation */}
+                {role === 'PROFESSIONAL' && (
+                  <>
+                    <Link to="/professional" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
+                      Coach Portal
+                    </Link>
+                  </>
+                )}
+
+                {/* 3. Admin Navigation */}
+                {role === 'ADMIN' && (
+                  <>
+                    <Link to="/admin" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
+                      Control Center
+                    </Link>
+                  </>
+                )}
+
+                {/* Shared Navigation */}
                 <Link to="/chat" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
                   Messages
                 </Link>
-                {role === 'ADMIN' && (
-                  <Link to="/admin" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
-                    Control Center
-                  </Link>
-                )}
                 <Link to="/profile" className="text-slate-300 hover:text-orange-400 transition font-semibold text-sm">
-                  Account
+                  {role === 'PROFESSIONAL' ? 'Coach Profile' : role === 'ADMIN' ? 'Admin Profile' : 'Account'}
                 </Link>
+
                 <button 
                   onClick={handleLogout}
                   className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition shadow-sm"
@@ -187,20 +208,53 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <Link 
-                  to={getDashboardLink()} 
-                  onClick={() => setIsMobileMenuOpen(false)} 
-                  className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
-                >
-                  Dashboard
-                </Link>
-                <Link 
-                  to="/performance" 
-                  onClick={() => setIsMobileMenuOpen(false)} 
-                  className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
-                >
-                  Batsman Card
-                </Link>
+                {/* 1. Athlete Mobile Links */}
+                {role === 'ATHLETE' && (
+                  <>
+                    <Link 
+                      to="/athlete" 
+                      onClick={() => setIsMobileMenuOpen(false)} 
+                      className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
+                    >
+                      Dashboard
+                    </Link>
+                    <Link 
+                      to="/performance" 
+                      onClick={() => setIsMobileMenuOpen(false)} 
+                      className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
+                    >
+                      Batsman Card
+                    </Link>
+                  </>
+                )}
+
+                {/* 2. Coach Mobile Links */}
+                {role === 'PROFESSIONAL' && (
+                  <>
+                    <Link 
+                      to="/professional" 
+                      onClick={() => setIsMobileMenuOpen(false)} 
+                      className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
+                    >
+                      Coach Portal
+                    </Link>
+                  </>
+                )}
+
+                {/* 3. Admin Mobile Links */}
+                {role === 'ADMIN' && (
+                  <>
+                    <Link 
+                      to="/admin" 
+                      onClick={() => setIsMobileMenuOpen(false)} 
+                      className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
+                    >
+                      Control Center
+                    </Link>
+                  </>
+                )}
+
+                {/* Shared Mobile Links */}
                 <Link 
                   to="/chat" 
                   onClick={() => setIsMobileMenuOpen(false)} 
@@ -213,8 +267,9 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)} 
                   className="block px-4 py-3 text-slate-300 hover:text-orange-400 rounded-xl font-medium min-h-[44px]"
                 >
-                  Account Profile
+                  {role === 'PROFESSIONAL' ? 'Coach Profile' : role === 'ADMIN' ? 'Admin Profile' : 'Account Profile'}
                 </Link>
+
                 <button 
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-3 mt-2 text-white bg-slate-800 hover:bg-slate-700 rounded-xl font-bold min-h-[44px]"
