@@ -37,19 +37,23 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-slate-900 text-white shadow-md sticky top-0 z-50 border-b border-slate-800">
+    <nav className="bg-slate-900/95 backdrop-blur-md text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
-          {/* Left Side: Brand Logo */}
-          <div className="flex items-center">
+          {/* Left Side: Brand Logo & Academy Tag */}
+          <div className="flex items-center gap-3">
             <Link 
               to={token ? getDashboardLink() : "/"} 
-              className="flex items-center gap-2 transition hover:opacity-90 bg-white px-3 py-1.5 rounded-lg shadow-sm"
+              className="flex items-center gap-2 transition hover:opacity-95 bg-white px-3 py-1.5 rounded-xl shadow-sm"
               title="DronaMate Home"
             >
-              <img src="/logo.png" alt="DronaMate Logo" className="h-9 w-auto" />
+              <img src="/logo.png" alt="DronaMate Logo" className="h-8 w-auto" />
             </Link>
+            <span className="hidden sm:inline-flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+              Cricket Academy
+            </span>
           </div>
           
           {/* Mobile Menu Button */}

@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import api from '../api';
 
 export default function ProfessionalPortal() {
-  const username = sessionStorage.getItem('user_name');
+  const username = sessionStorage.getItem('user_name') || 'Coach';
   const navigate = useNavigate();
   
   // Navigation State
@@ -14,7 +14,7 @@ export default function ProfessionalPortal() {
   // Schedule State
   const [slots, setSlots] = useState([]);
   const [formData, setFormData] = useState({
-    date: '', start_time: '', end_time: '', session_type: 'OFFLINE', price: '1200.00', max_capacity: 1
+    date: '', start_time: '', end_time: '', session_type: 'OFFLINE', price: '1500.00', max_capacity: 1
   });
 
   const [bookings, setBookings] = useState([]);
@@ -43,7 +43,7 @@ export default function ProfessionalPortal() {
 
   const fetchProfile = async () => {
     try {
-      const response = await api.get('auth/user/');
+      const response = await api.get('profile/');
       setMyProfile(response.data);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -84,9 +84,13 @@ export default function ProfessionalPortal() {
     try {
       await api.post('slots/', formData);
       fetchSlots();
-      alert('Availability Slot created successfully!');
+      alert('Coaching availability slot published successfully!');
+      setFormData({
+        date: '', start_time: '', end_time: '', session_type: 'OFFLINE', price: '1500.00', max_capacity: 1
+      });
     } catch (error) {
       console.error('Failed to create slot:', error);
+      alert('Failed to publish slot. Please check dates.');
     }
   };
 
@@ -98,7 +102,7 @@ export default function ProfessionalPortal() {
       await api.patch(`slots/${booking.slot}/`, {
         meeting_link_or_address: linkInputs[bookingId]
       });
-      alert('Details successfully updated!');
+      alert('Session details successfully updated!');
       fetchBookings();
       fetchSlots();
     } catch (error) {
@@ -118,14 +122,14 @@ export default function ProfessionalPortal() {
       setSelectedAthleteName(athleteName);
       setPerformanceModalOpen(true);
     } catch (error) {
-      alert("Failed to fetch athlete performance.");
+      alert("Failed to fetch athlete batsman scorecard.");
     }
   };
 
   const handleGenerateMeet = async (slotId) => {
     try {
-      const response = await api.post(`slots/${slotId}/generate_meet/`);
-      alert('Google Meet Link successfully generated!');
+      await api.post(`slots/${slotId}/generate_meet/`);
+      alert('Google Meet link successfully generated!');
       fetchBookings();
       fetchSlots();
     } catch (error) {
@@ -136,7 +140,7 @@ export default function ProfessionalPortal() {
   };
 
   const handleCancelSlot = async (slotId) => {
-    if (!window.confirm("Are you sure you want to cancel this session? All athletes will be automatically refunded.")) return;
+    if (!window.confirm("Are you sure you want to cancel this session? Any booked athletes will be automatically refunded.")) return;
     try {
       await api.post(`slots/${slotId}/cancel/`);
       alert('Session cancelled and refunds initiated.');
@@ -166,265 +170,312 @@ export default function ProfessionalPortal() {
     }
   };
 
-  const toggleExpand = (slotId) => {
-    setExpandedSlot(expandedSlot === slotId ? null : slotId);
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-slate-950 text-white selection:bg-orange-500 selection:text-slate-950 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header */}
-        <header className="mb-8 flex justify-between items-end">
+        {/* ========================================================= */}
+        {/* COACH CONTROL CENTER HEADER                               */}
+        {/* ========================================================= */}
+        <header className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Coach Control Center</h1>
-            <p className="text-slate-500">Welcome, Coach {username}. Manage availability, sessions, and athlete data.</p>
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="bg-purple-500/20 border border-purple-500/40 text-purple-400 px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                Certified Coach
+              </span>
+              <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Academy Mentor
+              </span>
+              {myProfile?.professional_profile?.academy_name && (
+                <span className="text-slate-400 text-xs font-semibold">
+                  🏛️ {myProfile.professional_profile.academy_name}
+                </span>
+              )}
+            </div>
+            <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Coach Portal & Masterclass Engine</h1>
+            <p className="text-slate-400 text-xs">Logged in as <strong className="text-white">Coach {myProfile?.first_name || username}</strong> • Manage availability, net sessions & athlete scorecards</p>
           </div>
 
-          <div className="flex space-x-2 bg-slate-200 p-1 rounded-lg">
+          <div className="flex space-x-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 self-stretch sm:self-auto">
             <button 
               onClick={() => setActiveTab('schedule')}
-              className={`px-4 py-2 rounded-md font-semibold transition ${activeTab === 'schedule' ? 'bg-white shadow text-amber-700' : 'text-slate-600 hover:text-slate-800'}`}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${activeTab === 'schedule' ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20' : 'text-slate-400 hover:text-white'}`}
             >
-              My Schedule
+              <span>📅</span> My Schedule ({slots.length})
             </button>
             <button 
               onClick={() => setActiveTab('bookings')}
-              className={`px-4 py-2 rounded-md font-semibold transition ${activeTab === 'bookings' ? 'bg-white shadow text-amber-700' : 'text-slate-600 hover:text-slate-800'}`}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${activeTab === 'bookings' ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20' : 'text-slate-400 hover:text-white'}`}
             >
-              Booked Sessions
+              <span>👥</span> Booked Sessions ({bookings.length})
             </button>
           </div>
         </header>
 
-        {/* TAB 1: SCHEDULE MANAGEMENT */}
+        {/* ========================================================= */}
+        {/* TAB 1: SCHEDULE MANAGEMENT                                */}
+        {/* ========================================================= */}
         {activeTab === 'schedule' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-xl shadow border border-slate-100 h-fit">
-              <h2 className="text-xl font-bold text-slate-700 mb-4">Post Availability Slot</h2>
-              <form onSubmit={handleSlotSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Left: Publish Slot Form */}
+            <div className="bg-slate-900 p-6 rounded-2xl shadow-xl border border-slate-800 h-fit">
+              <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider block mb-1">Calendar Provisioning</span>
+              <h2 className="text-lg font-bold text-white mb-4">Publish Availability Slot</h2>
+
+              <form onSubmit={handleSlotSubmit} className="space-y-4 text-xs">
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">Date</label>
-                  <input type="date" name="date" value={formData.date} onChange={handleSlotChange} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                  <label className="block font-semibold text-slate-300 mb-1">Session Date *</label>
+                  <input 
+                    type="date" 
+                    name="date" 
+                    value={formData.date} 
+                    onChange={handleSlotChange} 
+                    required 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500" 
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1">Start Time</label>
-                    <input type="time" name="start_time" value={formData.start_time} onChange={handleSlotChange} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                    <label className="block font-semibold text-slate-300 mb-1">Start Time *</label>
+                    <input 
+                      type="time" 
+                      name="start_time" 
+                      value={formData.start_time} 
+                      onChange={handleSlotChange} 
+                      required 
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500" 
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1">End Time</label>
-                    <input type="time" name="end_time" value={formData.end_time} onChange={handleSlotChange} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                    <label className="block font-semibold text-slate-300 mb-1">End Time *</label>
+                    <input 
+                      type="time" 
+                      name="end_time" 
+                      value={formData.end_time} 
+                      onChange={handleSlotChange} 
+                      required 
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500" 
+                    />
                   </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">Session Format</label>
-                  <select name="session_type" value={formData.session_type} onChange={handleSlotChange} className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500">
-                    <option value="OFFLINE">In-Person (1-on-1)</option>
-                    <option value="ONLINE">Virtual (1-on-1)</option>
-                    <option value="GROUP">Group Masterclass</option>
+                  <label className="block font-semibold text-slate-300 mb-1">Session Format *</label>
+                  <select 
+                    name="session_type" 
+                    value={formData.session_type} 
+                    onChange={handleSlotChange} 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="OFFLINE">Net Session (In-Person)</option>
+                    <option value="ONLINE">Virtual (1-on-1 Video Drill)</option>
+                    <option value="GROUP">Group Academy Masterclass</option>
                   </select>
                 </div>
+
                 {formData.session_type === 'GROUP' && (
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1">Max Athletes (Capacity)</label>
-                    <input type="number" min="2" max="100" name="max_capacity" value={formData.max_capacity} onChange={handleSlotChange} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                    <label className="block font-semibold text-slate-300 mb-1">Max Athletes (Capacity) *</label>
+                    <input 
+                      type="number" 
+                      min="2" 
+                      max="100" 
+                      name="max_capacity" 
+                      value={formData.max_capacity} 
+                      onChange={handleSlotChange} 
+                      required 
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500" 
+                    />
                   </div>
                 )}
+
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">Session Price (INR)</label>
-                  <input type="number" step="0.01" name="price" value={formData.price} onChange={handleSlotChange} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                  <label className="block font-semibold text-slate-300 mb-1">Session Price (₹ INR) *</label>
+                  <input 
+                    type="number" 
+                    step="50" 
+                    name="price" 
+                    value={formData.price} 
+                    onChange={handleSlotChange} 
+                    required 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500 font-mono" 
+                  />
                 </div>
-                <button type="submit" className="w-full bg-amber-600 text-white font-bold py-2 rounded hover:bg-amber-700 transition">Publish Slot</button>
+
+                <button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-orange-500/25 mt-2"
+                >
+                  Publish Academy Slot
+                </button>
               </form>
             </div>
 
-            <div className="md:col-span-2 space-y-4">
-              <h2 className="text-xl font-bold text-slate-700 mb-4">Your Posted Slots</h2>
+            {/* Right: Published Slots */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex justify-between items-center bg-slate-900 border border-slate-800 px-5 py-3.5 rounded-2xl">
+                <h3 className="font-bold text-white text-sm">Your Active Availability Schedule</h3>
+                <span className="text-xs text-slate-400 font-mono">{slots.length} Slots</span>
+              </div>
+
               {slots.length === 0 ? (
-                <div className="bg-white p-8 rounded-xl shadow border border-slate-100 text-center text-slate-500">
-                  You haven't posted any availability slots yet.
+                <div className="bg-slate-900 border border-slate-800 p-12 rounded-2xl text-center text-slate-500 text-xs">
+                  No slots published yet. Use the form to make your calendar available to academy batsmen.
                 </div>
               ) : (
-                slots.map(slot => (
-                  <div key={slot.id} className="bg-white p-5 rounded-xl shadow border border-slate-100 transition hover:shadow-md">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-bold text-lg text-slate-800">{slot.date}</span>
-                          <span className="text-sm font-semibold text-slate-500">({(slot.start_time || '').slice(0, 5)} - {(slot.end_time || '').slice(0, 5)})</span>
-                        </div>
-                        <div className="mt-1 flex items-center space-x-2 text-sm">
-                          <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                            slot.session_type === 'OFFLINE' ? 'bg-amber-100 text-amber-800' :
-                            slot.session_type === 'ONLINE' ? 'bg-blue-100 text-blue-800' :
-                            'bg-purple-100 text-purple-800'
-                          }`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {slots.map(slot => (
+                    <div 
+                      key={slot.id} 
+                      className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <span className="bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
                             {slot.session_type}
                           </span>
-                          <span className="text-slate-600">Capacity: {slot.current_enrollments ?? slot.booked_count ?? 0} / {slot.max_capacity}</span>
+                          <div className="font-bold text-white text-sm mt-1.5">📅 {slot.date}</div>
+                          <div className="text-xs text-slate-400">⏰ {(slot.start_time || '00:00').substring(0, 5)} - {(slot.end_time || '00:00').substring(0, 5)}</div>
                         </div>
+                        <span className="text-emerald-400 font-black text-sm bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-lg">
+                          ₹{slot.price}
+                        </span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-xl font-bold text-slate-800">₹{slot.price}</span>
-                        <div className="mt-1">
-                          {((slot.current_enrollments ?? slot.booked_count ?? 0) >= slot.max_capacity) ? (
-                            <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold">Full</span>
-                          ) : (
-                            <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-bold">Available</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center text-sm">
-                      <div className="space-x-2">
-                        <button onClick={() => openRescheduleModal(slot)} className="text-amber-600 hover:text-amber-700 font-bold">Reschedule</button>
-                        <span className="text-slate-300">|</span>
-                        <button onClick={() => handleCancelSlot(slot.id)} className="text-red-500 hover:text-red-700 font-bold">Cancel Session</button>
+                      <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 text-xs flex justify-between items-center">
+                        <span className="text-slate-400">Enrolled:</span>
+                        <span className="font-bold text-white">
+                          {slot.current_enrollments || 0} / {slot.max_capacity} Athletes
+                        </span>
                       </div>
-                      {slot.session_type === 'GROUP' && (
-                        <button onClick={() => toggleExpand(slot.id)} className="text-slate-500 hover:text-slate-700 font-semibold">
-                          {expandedSlot === slot.id ? 'Hide Roster ▲' : 'View Roster ▼'}
+
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          onClick={() => openRescheduleModal(slot)}
+                          className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-1.5 rounded-lg text-xs font-semibold transition border border-slate-700"
+                        >
+                          Reschedule
                         </button>
-                      )}
-                    </div>
-
-                    {expandedSlot === slot.id && slot.roster && (
-                      <div className="mt-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
-                        <h4 className="font-bold text-slate-700 text-sm mb-2">Booked Athletes</h4>
-                        {slot.roster.length === 0 ? (
-                          <div className="text-xs text-slate-400">No athletes have booked this slot yet.</div>
-                        ) : (
-                          <div className="space-y-2">
-                            {slot.roster.map(r => (
-                              <div key={r.booking_id} className="flex justify-between items-center text-xs">
-                                <div>
-                                  <span className="font-bold text-slate-700">{r.athlete_name}</span>
-                                  <span className="text-slate-400 ml-2">Goal: {r.goal || 'None specified'}</span>
-                                </div>
-                                <span className={`px-2 py-0.5 rounded font-bold ${r.status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                                  {r.status}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <button
+                          onClick={() => handleCancelSlot(slot.id)}
+                          className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 py-1.5 px-3 rounded-lg text-xs font-semibold transition"
+                          title="Cancel Slot"
+                        >
+                          ✕
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ))
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
+
           </div>
         )}
 
-        {/* TAB 2: BOOKED SESSIONS */}
+        {/* ========================================================= */}
+        {/* TAB 2: BOOKED SESSIONS & ATHLETE BATSMAN REVIEWS          */}
+        {/* ========================================================= */}
         {activeTab === 'bookings' && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold text-slate-700 mb-4">Upcoming Coaching Appointments</h2>
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-lg font-bold text-white">Scheduled Athlete Masterclasses</h2>
+                <p className="text-xs text-slate-400">Manage venue details, virtual links, and inspect athlete batsman scorecards</p>
+              </div>
+              <span className="text-xs font-mono text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full">
+                {bookings.length} Confirmed
+              </span>
+            </div>
+
             {bookings.length === 0 ? (
-              <div className="bg-white p-8 rounded-xl shadow border border-slate-100 text-center text-slate-500">
-                You have no active bookings right now.
+              <div className="bg-slate-900 border border-slate-800 p-12 rounded-2xl text-center text-slate-500 text-xs">
+                No active athlete bookings found. Once athletes reserve your published slots, they will appear here.
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {bookings.map(booking => {
+                  const athlete = booking.athlete_details || {};
                   const slot = booking.slot_details || {};
                   const date = slot.date || booking.date || 'TBD';
-                  const startTime = (slot.start_time || booking.start_time || '00:00').slice(0, 5);
-                  const endTime = (slot.end_time || booking.end_time || '00:00').slice(0, 5);
-                  const sessionType = slot.session_type || booking.session_type || '1-on-1';
+                  const startTime = (slot.start_time || booking.start_time || '00:00').substring(0, 5);
+                  const endTime = (slot.end_time || booking.end_time || '00:00').substring(0, 5);
 
                   return (
-                  <div key={booking.id} className="bg-white p-6 rounded-xl shadow border border-slate-100 flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Athlete</span>
-                          <h3 className="text-xl font-bold text-slate-800">{booking.athlete_name || 'Registered Athlete'}</h3>
-                        </div>
-                        <div className="flex flex-col items-end">
-                          <span className={`px-2 py-1 rounded text-xs font-bold ${
-                            booking.payment_status === 'PAID' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            {booking.payment_status || 'CONFIRMED'}
-                          </span>
-                          <span className="text-xs text-slate-400 mt-1">{sessionType}</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-50 p-4 rounded-lg space-y-2 mb-4 border border-slate-100">
-                        <div className="text-sm">
-                          <span className="text-slate-500 font-semibold">Date & Time: </span>
-                          <span className="font-bold text-slate-700">{date} at {startTime}{endTime ? ` - ${endTime}` : ''}</span>
-                        </div>
-                        <div className="text-sm">
-                          <span className="text-slate-500 font-semibold">Primary Goal: </span>
-                          <span className="text-slate-700">{booking.current_goal || 'None provided'}</span>
-                        </div>
-                        {booking.past_injury && (
-                          <div className="text-sm">
-                            <span className="text-red-500 font-semibold">Past Injury: </span>
-                            <span className="text-slate-700">{booking.past_injury}</span>
+                    <div key={booking.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                      <div>
+                        {/* Athlete Header */}
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow-md text-sm">
+                              {(athlete.username?.[0] || 'A').toUpperCase()}
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-sm text-white">
+                                {athlete.first_name ? `${athlete.first_name} ${athlete.last_name || ''}` : athlete.username || 'Registered Athlete'}
+                              </h3>
+                              <p className="text-slate-400 text-xs font-mono">@{athlete.username || 'athlete'}</p>
+                            </div>
                           </div>
-                        )}
+                          <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                            booking.payment_status === 'PAID' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'
+                          }`}>
+                            {booking.payment_status}
+                          </span>
+                        </div>
+
+                        {/* Session Metadata */}
+                        <div className="p-3.5 bg-slate-950 rounded-xl border border-slate-800 space-y-2 mb-4 text-xs">
+                          <div className="flex justify-between text-slate-400">
+                            <span>📅 Schedule:</span>
+                            <span className="font-semibold text-white">{date} ({startTime} - {endTime})</span>
+                          </div>
+                          <div className="flex justify-between text-slate-400">
+                            <span>Format:</span>
+                            <span className="font-bold text-purple-400">{slot.session_type || '1-on-1'}</span>
+                          </div>
+                          {booking.current_goal && (
+                            <div className="pt-2 border-t border-slate-800/80">
+                              <span className="text-[10px] text-slate-500 uppercase font-bold block mb-0.5">Athlete Focus Goal</span>
+                              <p className="text-slate-300 italic">"{booking.current_goal}"</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="mb-4">
-                        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
-                          {(booking.slot_details?.session_type || booking.session_type) === 'ONLINE' ? 'Virtual Meeting Link' : 'Facility / Training Ground Address'}
-                        </label>
-                        <div className="flex space-x-2">
+                      {/* Action Bar */}
+                      <div className="pt-3 border-t border-slate-800 space-y-3">
+                        
+                        {/* Venue or Virtual Link Input */}
+                        <div className="flex gap-2">
                           <input 
                             type="text" 
-                            placeholder={(booking.slot_details?.session_type || booking.session_type) === 'ONLINE' ? 'https://meet.google.com/...' : 'Ground 2, Sector 4...'}
-                            value={linkInputs[booking.id] || ''} 
+                            placeholder={slot.session_type === 'ONLINE' ? 'Enter Google Meet Link' : 'Net Facility / Gate Address'}
+                            value={linkInputs[booking.id] || ''}
                             onChange={(e) => setLinkInputs({ ...linkInputs, [booking.id]: e.target.value })}
-                            className="flex-1 px-3 py-1.5 border rounded text-sm focus:ring-2 focus:ring-amber-500"
+                            className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500"
                           />
-                          <button 
+                          <button
                             onClick={() => handleUpdateDetails(booking.id)}
-                            className="bg-slate-800 text-white px-3 py-1.5 rounded text-sm font-semibold hover:bg-slate-900 transition"
+                            className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition border border-slate-700"
                           >
                             Save
                           </button>
                         </div>
-                        {(booking.slot_details?.session_type || booking.session_type) === 'ONLINE' && (
-                          <button
-                            onClick={() => handleGenerateMeet(booking.slot)}
-                            className="mt-2 text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
-                          >
-                            <span>🎥</span> Auto-Generate Google Meet Link
-                          </button>
-                        )}
+
+                        {/* View Athlete Batsman Scorecard CTA */}
+                        <button
+                          onClick={() => handleViewPerformance(booking.athlete, athlete.username || 'Athlete')}
+                          className="w-full bg-slate-800 hover:bg-orange-500 hover:text-white text-orange-400 font-bold py-2 rounded-xl text-xs transition border border-slate-700 hover:border-orange-500 shadow-sm flex items-center justify-center gap-1.5"
+                        >
+                          <span>🏏</span> View Athlete Batsman Card & Pace/Spin Splits
+                        </button>
+
                       </div>
+
                     </div>
-
-                    <div className="pt-4 border-t border-slate-100 flex flex-col space-y-2">
-                      <button 
-                        onClick={() => handleViewPerformance(booking.athlete, booking.athlete_name)}
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-slate-950 font-bold py-2 rounded transition flex items-center justify-center gap-2 text-sm shadow-sm"
-                      >
-                        <span>🏏</span> View Cricket Performance & Biometrics
-                      </button>
-
-                      <button 
-                        onClick={async () => {
-                          try {
-                            const res = await api.post('conversations/', { recipient_id: booking.athlete });
-                            navigate('/chat', { state: { autoSelectId: res.data.id } });
-                          } catch (err) {
-                            alert("Failed to open chat with athlete.");
-                          }
-                        }}
-                        className="w-full bg-white border-2 border-slate-300 text-slate-700 font-bold py-2 rounded transition hover:bg-slate-50 text-sm"
-                      >
-                        Message Athlete
-                      </button>
-                    </div>
-
-                  </div>
                   );
                 })}
               </div>
@@ -432,201 +483,187 @@ export default function ProfessionalPortal() {
           </div>
         )}
 
-        {/* PERFORMANCE MODAL (CRICKET BATSMAN STATS + BIOMETRICS) */}
-        {performanceModalOpen && (
-          <div className="fixed inset-0 bg-slate-900 bg-opacity-70 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-6 relative max-h-[90vh] flex flex-col">
-              <button 
-                onClick={() => setPerformanceModalOpen(false)}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-2xl"
-              >
-                &times;
-              </button>
-              
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-slate-800">{selectedAthleteName}'s Performance Dashboard</h2>
-                <p className="text-xs text-slate-500">Live batsman metrics, pace vs spin matchups, and physical readiness</p>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto space-y-6 pr-2">
-                
-                {/* 1. Cricket Batsman Profile & Split Stats */}
-                {selectedAthleteCricket ? (
-                  <div className="bg-slate-950 text-white rounded-2xl p-6 shadow-xl border border-slate-800">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-4 mb-4">
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-xl">🏏</span>
-                          <span className="font-bold text-lg text-white">Cricket Batsman Profile</span>
-                          <span className="bg-orange-500/20 text-orange-400 text-xs font-bold px-2.5 py-0.5 rounded border border-orange-500/40">
-                            {selectedAthleteCricket.athlete_details?.primary_role || 'Batsman'}
-                          </span>
-                          {selectedAthleteCricket.athlete_details?.club_name && (
-                            <span className="bg-slate-800 text-slate-300 text-xs px-2.5 py-0.5 rounded border border-slate-700">
-                              🏛️ {selectedAthleteCricket.athlete_details.club_name}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-slate-400 mt-1">
-                          {selectedAthleteCricket.athlete_details?.preferred_position || 'Top-Order'} • {selectedAthleteCricket.athlete_details?.batting_hand || 'Right-hand bat'}
-                          {selectedAthleteCricket.athlete_details?.age && ` • Age: ${selectedAthleteCricket.athlete_details.age}`}
-                          {selectedAthleteCricket.athlete_details?.height && ` • Height: ${selectedAthleteCricket.athlete_details.height}`}
-                          {selectedAthleteCricket.athlete_details?.weight && ` • Weight: ${selectedAthleteCricket.athlete_details.weight}`}
-                        </p>
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        Updated: {new Date(selectedAthleteCricket.updated_at).toLocaleDateString()}
-                      </div>
-                    </div>
-
-                    {/* Overall Numbers */}
-                    <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5 mb-5 text-center">
-                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold">Matches / Inn</p>
-                        <p className="text-lg font-black text-white">{selectedAthleteCricket.matches_played} / {selectedAthleteCricket.innings}</p>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold">Runs Scored</p>
-                        <p className="text-lg font-black text-orange-400">{selectedAthleteCricket.runs_made}</p>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold">Batting Average</p>
-                        <p className="text-lg font-black text-emerald-400">{selectedAthleteCricket.batting_average}</p>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold">Strike Rate</p>
-                        <p className="text-lg font-black text-cyan-400">{selectedAthleteCricket.strike_rate}</p>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold">100s / 50s</p>
-                        <p className="text-lg font-black text-white">{selectedAthleteCricket.centuries} / {selectedAthleteCricket.half_centuries}</p>
-                      </div>
-                      <div className="bg-slate-900 border border-slate-800 p-3 rounded-xl">
-                        <p className="text-[10px] text-slate-400 uppercase font-semibold">4s / 6s</p>
-                        <p className="text-lg font-black text-amber-400">{selectedAthleteCricket.fours} / {selectedAthleteCricket.sixes}</p>
-                      </div>
-                    </div>
-
-                    {/* Pace vs Spin Split (Key Requirement) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div className="bg-slate-900 p-4 rounded-xl border border-orange-500/20">
-                        <div className="font-bold text-orange-400 flex items-center justify-between mb-3">
-                          <span className="flex items-center gap-1.5 text-sm">⚡ Vs. Medium Fast (Pace)</span>
-                          <span className="text-cyan-400 font-bold">SR: {selectedAthleteCricket.sr_medium_fast}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-slate-300">
-                          <div>Balls: <strong className="text-white">{selectedAthleteCricket.balls_faced_medium_fast}</strong></div>
-                          <div>Runs: <strong className="text-orange-400">{selectedAthleteCricket.runs_scored_medium_fast}</strong></div>
-                          <div>Dismissals: <strong className="text-red-400">{selectedAthleteCricket.dismissals_medium_fast}</strong></div>
-                          <div>Average: <strong className="text-emerald-400">{selectedAthleteCricket.avg_medium_fast}</strong></div>
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-900 p-4 rounded-xl border border-cyan-500/20">
-                        <div className="font-bold text-cyan-400 flex items-center justify-between mb-3">
-                          <span className="flex items-center gap-1.5 text-sm">🌀 Vs. Spin Bowlers</span>
-                          <span className="text-cyan-400 font-bold">SR: {selectedAthleteCricket.sr_spin}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-slate-300">
-                          <div>Balls: <strong className="text-white">{selectedAthleteCricket.balls_faced_spin}</strong></div>
-                          <div>Runs: <strong className="text-cyan-400">{selectedAthleteCricket.runs_scored_spin}</strong></div>
-                          <div>Dismissals: <strong className="text-red-400">{selectedAthleteCricket.dismissals_spin}</strong></div>
-                          <div>Average: <strong className="text-emerald-400">{selectedAthleteCricket.avg_spin}</strong></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {selectedAthleteCricket.notes && (
-                      <div className="mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400">
-                        <strong className="text-slate-300">Athlete Target/Notes:</strong> {selectedAthleteCricket.notes}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-xs text-slate-500">
-                    No cricket match metrics recorded yet for this athlete.
-                  </div>
-                )}
-
-                {/* 2. Biometrics & Daily Recovery Charts */}
-                {selectedAthleteLogs.length > 0 ? (
-                  <>
-                    <h3 className="text-lg font-bold text-slate-800 pt-2 border-t border-slate-100">
-                      Biometrics & Training Readiness
-                    </h3>
-
-                    <div className="h-64 border border-slate-100 rounded-xl p-4 shadow-sm bg-white">
-                      <h4 className="font-bold text-slate-700 mb-2 text-sm">Fatigue vs Exertion (RPE)</h4>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={selectedAthleteLogs} margin={{ top: 5, right: 20, bottom: 25, left: 0 }}>
-                          <Line type="monotone" dataKey="fatigue_level" stroke="#f59e0b" name="Fatigue (1-10)" strokeWidth={2} />
-                          <Line type="monotone" dataKey="perceived_exertion" stroke="#ef4444" name="Exertion (1-10)" strokeWidth={2} />
-                          <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                          <XAxis dataKey="date" />
-                          <YAxis domain={[0, 10]} />
-                          <Tooltip />
-                          <Legend />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    <div className="h-64 border border-slate-100 rounded-xl p-4 shadow-sm bg-white">
-                      <h4 className="font-bold text-slate-700 mb-2 text-sm">Sleep vs Training Volume</h4>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={selectedAthleteLogs} margin={{ top: 5, right: 20, bottom: 25, left: 0 }}>
-                          <Line type="monotone" dataKey="sleep_hours" stroke="#3b82f6" name="Sleep (Hrs)" strokeWidth={2} />
-                          <Line type="monotone" dataKey="training_duration_mins" stroke="#10b981" name="Training (Mins)" strokeWidth={2} />
-                          <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-                          <XAxis dataKey="date" />
-                          <YAxis yAxisId="left" />
-                          <YAxis yAxisId="right" orientation="right" />
-                          <Tooltip />
-                          <Legend />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </>
-                ) : (
-                  <div className="p-4 text-center text-sm text-slate-500 bg-slate-50 rounded-xl">
-                    No daily biometric logs recorded yet for this athlete.
-                  </div>
-                )}
-
-              </div>
-            </div>
-          </div>
-        )}
-
       </div>
 
-      {/* RESCHEDULE MODAL */}
-      {rescheduleModalOpen && selectedSlot && (
-        <div className="fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
-            <button 
-              onClick={() => setRescheduleModalOpen(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-xl"
-            >
-              &times;
-            </button>
-            <h2 className="text-2xl font-bold text-slate-800 mb-4">Reschedule Session</h2>
-            <p className="text-slate-600 mb-4">Athletes will be automatically notified of this change.</p>
-            <form onSubmit={handleRescheduleSubmit} className="space-y-4">
+      {/* ========================================================= */}
+      {/* ATHLETE BATSMAN SCORECARD MODAL                           */}
+      {/* ========================================================= */}
+      {performanceModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex justify-between items-center pb-4 border-b border-slate-800">
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">New Date</label>
-                <input type="date" value={rescheduleData.date} onChange={(e) => setRescheduleData({...rescheduleData, date: e.target.value})} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider block">Athlete Dossier</span>
+                <h3 className="text-xl font-black text-white">Batsman Performance Card • @{selectedAthleteName}</h3>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <button onClick={() => setPerformanceModalOpen(false)} className="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+            </div>
+
+            {selectedAthleteCricket ? (
+              <div className="mt-5 space-y-6">
+                
+                {/* 1. Career / Season Metrics Grid */}
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center text-xs">
+                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold block">Matches</span>
+                    <span className="text-lg font-black text-white">{selectedAthleteCricket.matches_played || 0}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold block">Runs</span>
+                    <span className="text-lg font-black text-orange-400">{selectedAthleteCricket.runs_made || 0}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold block">Average</span>
+                    <span className="text-lg font-black text-white">{selectedAthleteCricket.average || 0}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold block">Strike Rate</span>
+                    <span className="text-lg font-black text-emerald-400">{selectedAthleteCricket.strike_rate || 0}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold block">100s / 50s</span>
+                    <span className="text-lg font-black text-white">{selectedAthleteCricket.centuries || 0} / {selectedAthleteCricket.half_centuries || 0}</span>
+                  </div>
+                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <span className="text-[10px] text-slate-500 uppercase font-bold block">Boundaries</span>
+                    <span className="text-lg font-black text-amber-400">{selectedAthleteCricket.fours || 0} 4s • {selectedAthleteCricket.sixes || 0} 6s</span>
+                  </div>
+                </div>
+
+                {/* 2. Technical Pace vs Spin Splits */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-slate-950 p-4 rounded-xl border border-blue-500/20 space-y-2 text-xs">
+                    <span className="font-bold text-blue-400 uppercase tracking-wider block">⚡ Against Medium Fast (Pace)</span>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Balls Faced:</span>
+                      <span className="text-white font-bold">{selectedAthleteCricket.balls_faced_medium_fast || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Runs Scored:</span>
+                      <span className="text-emerald-400 font-bold">{selectedAthleteCricket.runs_scored_medium_fast || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Dismissals:</span>
+                      <span className="text-red-400 font-bold">{selectedAthleteCricket.dismissals_medium_fast || 0}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950 p-4 rounded-xl border border-purple-500/20 space-y-2 text-xs">
+                    <span className="font-bold text-purple-400 uppercase tracking-wider block">🌀 Against Spin Bowling</span>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Balls Faced:</span>
+                      <span className="text-white font-bold">{selectedAthleteCricket.balls_faced_spin || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Runs Scored:</span>
+                      <span className="text-emerald-400 font-bold">{selectedAthleteCricket.runs_scored_spin || 0}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Dismissals:</span>
+                      <span className="text-red-400 font-bold">{selectedAthleteCricket.dismissals_spin || 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Recent Biometrics & Recovery Chart */}
+                {selectedAthleteLogs.length > 0 && (
+                  <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-xs font-bold text-white mb-3">Recent Readiness & Exertion Trend</h4>
+                    <div className="h-48 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={selectedAthleteLogs}>
+                          <Line type="monotone" dataKey="fatigue_level" stroke="#f59e0b" name="Fatigue" strokeWidth={2} />
+                          <Line type="monotone" dataKey="perceived_exertion" stroke="#ef4444" name="Exertion" strokeWidth={2} />
+                          <CartesianGrid stroke="#334155" strokeDasharray="3 3" />
+                          <XAxis dataKey="date" stroke="#94a3b8" />
+                          <YAxis domain={[0, 10]} stroke="#94a3b8" />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', color: '#fff' }} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            ) : (
+              <div className="py-12 text-center text-slate-500 text-xs">
+                No verified cricket scorecard logged yet by this athlete.
+              </div>
+            )}
+
+            <div className="mt-6 pt-3 border-t border-slate-800 flex justify-end">
+              <button
+                onClick={() => setPerformanceModalOpen(false)}
+                className="bg-slate-800 hover:bg-slate-700 text-white font-bold px-5 py-2 rounded-xl text-xs"
+              >
+                Close Dossier
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* RESCHEDULE MODAL                                          */}
+      {/* ========================================================= */}
+      {rescheduleModalOpen && selectedSlot && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+            <h3 className="text-base font-bold text-white mb-1">Reschedule Session</h3>
+            <p className="text-xs text-slate-400 mb-4">Set a new date and time. Enrolled athletes will receive immediate notice.</p>
+
+            <form onSubmit={handleRescheduleSubmit} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">New Date</label>
+                <input 
+                  type="date" 
+                  value={rescheduleData.date} 
+                  onChange={(e) => setRescheduleData({ ...rescheduleData, date: e.target.value })}
+                  required 
+                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500" 
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">New Start</label>
-                  <input type="time" value={rescheduleData.start_time} onChange={(e) => setRescheduleData({...rescheduleData, start_time: e.target.value})} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                  <label className="block font-semibold text-slate-300 mb-1">Start Time</label>
+                  <input 
+                    type="time" 
+                    value={rescheduleData.start_time} 
+                    onChange={(e) => setRescheduleData({ ...rescheduleData, start_time: e.target.value })}
+                    required 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500" 
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">New End</label>
-                  <input type="time" value={rescheduleData.end_time} onChange={(e) => setRescheduleData({...rescheduleData, end_time: e.target.value})} required className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-amber-500" />
+                  <label className="block font-semibold text-slate-300 mb-1">End Time</label>
+                  <input 
+                    type="time" 
+                    value={rescheduleData.end_time} 
+                    onChange={(e) => setRescheduleData({ ...rescheduleData, end_time: e.target.value })}
+                    required 
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-orange-500" 
+                  />
                 </div>
               </div>
-              <button type="submit" className="w-full bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 transition">Confirm Reschedule</button>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setRescheduleModalOpen(false)}
+                  className="bg-slate-800 text-slate-300 font-bold px-4 py-2 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-2 rounded-xl shadow-lg shadow-orange-500/20"
+                >
+                  Confirm Reschedule
+                </button>
+              </div>
             </form>
           </div>
         </div>
