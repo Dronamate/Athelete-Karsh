@@ -1,19 +1,32 @@
 // src/api.js
 import axios from 'axios';
+import { auth } from './firebase';
 
 // 1. Create a core instance pointing to our Django server
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/',
+  baseURL: import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/',
 });
 
 // 2. Add a Request Interceptor
-// This pauses every outgoing API request and checks if we have a saved login token.
-// If we do, it securely attaches it to the Authorization header.
+// Intercepts every outgoing API request:
+// - Fetches a fresh Firebase ID token if user is signed in with Firebase.
+// - Falls back to sessionStorage access token if available.
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    try {
+      if (auth && auth.currentUser) {
+        const idToken = await auth.currentUser.getIdToken();
+        if (idToken) {
+          config.headers.Authorization = `Bearer ${idToken}`;
+          return config;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to retrieve Firebase ID token, using session token fallback:', err);
+    }
+
     const token = sessionStorage.getItem('access_token');
     if (token) {
-      // The dj-rest-auth package expects the word "Bearer" before the token
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

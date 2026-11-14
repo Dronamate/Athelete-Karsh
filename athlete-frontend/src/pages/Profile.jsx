@@ -1,8 +1,13 @@
 // src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import api from '../api';
+import { useToast } from '../components/Toast';
+
+const INPUT_CLASS =
+  'w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[#0c2340] focus:outline-none focus:border-[#ff5500] focus:bg-white text-xs sm:text-sm transition';
 
 export default function Profile() {
+  const { addToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('details');
   const [successMsg, setSuccessMsg] = useState('');
@@ -58,10 +63,9 @@ export default function Profile() {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
-        role: data.role || '',
-        dob: data.dob || ap.date_of_birth || '',
-        blood_type: data.blood_type || '',
-        // Athlete profile
+        role: data.role || 'ATHLETE',
+        dob: ap.dob || '',
+        blood_type: ap.blood_type || '',
         age: ap.age || '',
         city: ap.city || '',
         state: ap.state || '',
@@ -74,44 +78,23 @@ export default function Profile() {
         batting_hand: ap.batting_hand || 'Right-hand bat',
         bowling_style: ap.bowling_style || 'Right-arm medium fast',
         preferred_position: ap.preferred_position || 'Top-Order Batsman',
-        // Coach profile
-        academy_name: pp.academy_name || '',
-        specialty_name: pp.speciality?.name || 'Cricket Specialist',
-        session_price: pp.session_price || '',
+        academy_name: pp.institution_club || pp.academy_name || '',
+        specialty_name: pp.speciality?.name || '',
+        session_price: pp.charges_per_session || pp.session_price || '',
         address: pp.address || '',
         is_certified: pp.is_certified || false
       });
-      
-      let avatarUrl = data.avatar;
-      if (avatarUrl && !avatarUrl.startsWith('http')) {
-        const mediaBaseUrl = import.meta.env.VITE_MEDIA_BASE_URL || 'http://127.0.0.1:8000';
-        avatarUrl = `${mediaBaseUrl}${avatarUrl}`;
+
+      if (data.avatar) {
+        setAvatarPreview(data.avatar);
       }
-      setAvatarPreview(avatarUrl || null);
-      
-      setLoading(false);
     } catch (error) {
-      console.error('Failed to fetch profile:', error);
+      console.error('Error fetching profile:', error);
+      setErrorMsg('Failed to load profile details.');
+    } finally {
       setLoading(false);
     }
   };
-
-  const calculateProgress = () => {
-    if (formData.role === 'PROFESSIONAL') {
-      const fields = ['first_name', 'last_name', 'email', 'academy_name', 'session_price', 'address'];
-      let filled = 0;
-      fields.forEach(f => { if (formData[f]) filled++; });
-      if (avatarPreview || selectedFile) filled++; 
-      return Math.min(100, Math.round((filled / 7) * 100));
-    }
-    const fields = ['first_name', 'last_name', 'email', 'playing_role', 'club_name', 'batting_hand', 'preferred_position'];
-    let filled = 0;
-    fields.forEach(f => { if (formData[f]) filled++; });
-    if (avatarPreview || selectedFile) filled++; 
-    return Math.min(100, Math.round((filled / 8) * 100));
-  };
-
-  const progress = calculateProgress();
 
   const handleProfileChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -168,323 +151,216 @@ export default function Profile() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      setSuccessMsg('Profile details updated successfully!');
-      setSelectedFile(null);
+      setSuccessMsg('Profile details successfully updated!');
+      addToast('Profile details successfully updated!', 'success');
       fetchProfile();
     } catch (error) {
-      console.error(error);
-      setErrorMsg('Failed to update profile.');
+      console.error('Error updating profile:', error);
+      const msg = 'Failed to update profile. Please check inputs.';
+      setErrorMsg(msg);
+      addToast(msg, 'error');
     }
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     if (passwordData.new_password1 !== passwordData.new_password2) {
-      return setErrorMsg("New passwords do not match!");
+      const msg = 'New passwords do not match.';
+      setErrorMsg(msg);
+      addToast(msg, 'error');
+      return;
     }
+
     try {
-      await api.post('auth/password/change/', passwordData);
-      setSuccessMsg('Password updated securely!');
+      await api.post('auth/password/change/', {
+        old_password: passwordData.old_password,
+        new_password1: passwordData.new_password1,
+        new_password2: passwordData.new_password2
+      });
+      setSuccessMsg('Password updated successfully!');
+      addToast('Password updated successfully!', 'success');
       setPasswordData({ old_password: '', new_password1: '', new_password2: '' });
     } catch (error) {
-      setErrorMsg(error.response?.data?.old_password?.[0] || 'Failed to update password.');
+      const msg = error.response?.data?.old_password?.[0] || 'Failed to update password.';
+      setErrorMsg(msg);
+      addToast(msg, 'error');
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Loading Profile...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#faf8ff] text-[#0c2340] flex flex-col items-center justify-center font-sans">
+        <div className="w-8 h-8 border-4 border-[#ff5500] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-xs font-bold tracking-wider uppercase text-slate-500 font-display">Loading Profile...</p>
+      </div>
+    );
+  }
 
   const isAthlete = formData.role === 'ATHLETE';
   const isCoach = formData.role === 'PROFESSIONAL';
   const isAdmin = formData.role === 'ADMIN';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8 selection:bg-orange-500 selection:text-slate-900">
+    <div className="min-h-screen bg-[#faf8ff] text-[#0c2340] p-4 md:p-8 selection:bg-[#ff5500] selection:text-white font-sans overflow-x-hidden w-full max-w-[100vw]">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
         
         {/* Left Side: Avatar Card */}
-        <div className="w-full md:w-1/3 bg-slate-900 p-6 rounded-2xl shadow-lg border border-slate-800 flex flex-col items-center h-fit">
+        <div className="w-full md:w-1/3 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center h-fit">
           <div className="relative mb-4 group cursor-pointer">
-            <div className="w-36 h-36 rounded-2xl overflow-hidden border-4 border-slate-800 bg-slate-800 shadow-xl flex items-center justify-center">
+            <div className="w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-100 shadow-sm flex items-center justify-center">
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 text-4xl">
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 text-3xl">
                   <span>{isCoach ? '🏏' : isAthlete ? '⚡' : '🛡️'}</span>
-                  <span className="text-xs text-slate-400 mt-2 font-semibold">Upload Photo</span>
+                  <span className="text-[10px] text-slate-500 mt-1 font-bold">Upload Photo</span>
                 </div>
               )}
             </div>
             <input type="file" id="avatarUpload" accept="image/*" className="hidden" onChange={handleFileChange} />
-            <label htmlFor="avatarUpload" className="absolute -bottom-2 -right-2 bg-orange-500 text-white p-2.5 rounded-xl shadow-lg cursor-pointer hover:bg-orange-600 transition">
+            <label htmlFor="avatarUpload" className="absolute -bottom-1 -right-1 bg-[#ff5500] text-white p-2 rounded-xl shadow-md cursor-pointer hover:bg-[#ea4c00] transition">
               📷
             </label>
           </div>
           
-          <h2 className="text-xl font-bold text-white text-center">
+          <h2 className="text-lg font-black text-[#0c2340] text-center font-display">
             {formData.first_name || (isCoach ? 'Coach' : 'Athlete')} {formData.last_name}
           </h2>
 
           <div className="flex items-center gap-2 mt-1 mb-4 flex-wrap justify-center">
-            <span className="bg-orange-500/10 border border-orange-500/30 text-orange-400 px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">
-              {isCoach ? 'Certified Coach' : isAthlete ? (formData.playing_role || 'Batsman') : 'Administrator'}
+            <span className="bg-orange-50 border border-orange-200 text-[#ff5500] px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider font-display">
+              {isCoach ? 'Certified Coach' : isAthlete ? (formData.playing_role || 'Athlete') : 'Administrator'}
             </span>
             {isAthlete && formData.club_name && (
-              <span className="bg-slate-800 text-slate-400 text-xs px-2.5 py-0.5 rounded-full font-medium">
+              <span className="bg-slate-100 text-slate-600 text-[11px] px-2.5 py-0.5 rounded-full font-medium">
                 {formData.club_name}
               </span>
             )}
             {isCoach && formData.academy_name && (
-              <span className="bg-slate-800 text-slate-400 text-xs px-2.5 py-0.5 rounded-full font-medium">
+              <span className="bg-slate-100 text-slate-600 text-[11px] px-2.5 py-0.5 rounded-full font-medium">
                 {formData.academy_name}
               </span>
             )}
           </div>
 
-          {/* Role-Specific Summary Card */}
-          {isAthlete && (
-            <div className="w-full bg-slate-800/60 p-4 rounded-xl border border-slate-800 mt-2 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-400">
-                <span>Primary Role</span>
-                <span className="font-semibold text-white">{formData.playing_role}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Secondary Role</span>
-                <span className="font-semibold text-white">{formData.secondary_role || 'None'}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Batting Hand</span>
-                <span className="font-semibold text-white">{formData.batting_hand}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Position</span>
-                <span className="font-semibold text-white">{formData.preferred_position}</span>
-              </div>
+          <div className="w-full bg-slate-50 p-3.5 rounded-xl border border-slate-200 mt-2 space-y-2 text-xs">
+            <div className="flex justify-between text-slate-500">
+              <span>Account Status</span>
+              <span className="font-bold text-emerald-600">Active</span>
             </div>
-          )}
-
-          {isCoach && (
-            <div className="w-full bg-slate-800/60 p-4 rounded-xl border border-slate-800 mt-2 space-y-2.5 text-xs">
-              <div className="flex justify-between text-slate-400">
-                <span>Specialization</span>
-                <span className="font-semibold text-orange-400">{formData.specialty_name}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Session Rate</span>
-                <span className="font-semibold text-emerald-400">₹{formData.session_price || '1,000'}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Status</span>
-                <span className="font-semibold text-white">✓ Verified Coach</span>
-              </div>
-            </div>
-          )}
-
-          {isAdmin && (
-            <div className="w-full bg-slate-800/60 p-4 rounded-xl border border-slate-800 mt-2 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-400">
-                <span>Permissions</span>
-                <span className="font-semibold text-white">Full Superuser</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Panel</span>
-                <span className="font-semibold text-orange-400">Control Center</span>
-              </div>
-            </div>
-          )}
-
-          <div className="w-full mt-6">
-            <div className="flex justify-between text-xs font-bold text-slate-400 mb-2">
-              <span>Profile Completion</span>
-              <span className="text-orange-400">{progress}%</span>
-            </div>
-            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-              <div className="bg-gradient-to-r from-orange-500 to-amber-500 h-2 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+            <div className="flex justify-between text-slate-500">
+              <span>Access Level</span>
+              <span className="font-bold text-[#0c2340]">{formData.role}</span>
             </div>
           </div>
         </div>
 
         {/* Right Side: Form Tabs */}
-        <div className="w-full md:w-2/3 bg-slate-900 p-6 md:p-8 rounded-2xl shadow-lg border border-slate-800">
-          <div className="flex border-b border-slate-800 mb-6 space-x-6">
+        <div className="w-full md:w-2/3 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+          <div className="flex border-b border-slate-200 space-x-6 pb-2">
             <button 
-              className={`pb-3 font-bold transition text-sm ${activeTab === 'details' ? 'border-b-2 border-orange-500 text-orange-400' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`pb-2 font-bold transition text-xs sm:text-sm font-display ${activeTab === 'details' ? 'border-b-2 border-[#ff5500] text-[#ff5500]' : 'text-slate-500 hover:text-[#0c2340]'}`}
               onClick={() => { setActiveTab('details'); setSuccessMsg(''); setErrorMsg(''); }}
             >
               {isCoach ? 'Coach Information' : isAthlete ? 'Athlete Information' : 'Admin Details'}
             </button>
             <button 
-              className={`pb-3 font-bold transition text-sm ${activeTab === 'security' ? 'border-b-2 border-orange-500 text-orange-400' : 'text-slate-400 hover:text-slate-200'}`}
+              className={`pb-2 font-bold transition text-xs sm:text-sm font-display ${activeTab === 'security' ? 'border-b-2 border-[#ff5500] text-[#ff5500]' : 'text-slate-500 hover:text-[#0c2340]'}`}
               onClick={() => { setActiveTab('security'); setSuccessMsg(''); setErrorMsg(''); }}
             >
-              Security & Password
+              Security &amp; Password
             </button>
           </div>
 
-          {successMsg && <div className="mb-6 p-4 bg-emerald-500/10 text-emerald-400 rounded-xl font-medium border border-emerald-500/20 text-sm">✓ {successMsg}</div>}
-          {errorMsg && <div className="mb-6 p-4 bg-red-500/10 text-red-400 rounded-xl font-medium border border-red-500/20 text-sm">⚠ {errorMsg}</div>}
+          {successMsg && <div className="p-3 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-semibold border border-emerald-200">✓ {successMsg}</div>}
+          {errorMsg && <div className="p-3 bg-red-50 text-red-800 rounded-lg text-xs font-semibold border border-red-200">⚠ {errorMsg}</div>}
 
           {activeTab === 'details' && (
-            <form onSubmit={handleProfileSubmit} className="space-y-6">
-              
-              {/* Common Section: Basic Identity */}
+            <form onSubmit={handleProfileSubmit} className="space-y-5">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">1. Personal Identity</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 font-display">1. Personal Identity</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">First Name</label>
-                    <input type="text" name="first_name" value={formData.first_name} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">First Name</label>
+                    <input type="text" name="first_name" value={formData.first_name} onChange={handleProfileChange} className={INPUT_CLASS} />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Last Name</label>
-                    <input type="text" name="last_name" value={formData.last_name} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">Last Name</label>
+                    <input type="text" name="last_name" value={formData.last_name} onChange={handleProfileChange} className={INPUT_CLASS} />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Email</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-slate-300 focus:outline-none text-sm" />
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">Email</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleProfileChange} className={INPUT_CLASS} />
                   </div>
                 </div>
               </div>
 
-              {/* ATHLETE SPECIFIC SECTIONS */}
               {isAthlete && (
-                <>
-                  {/* Physical & Age */}
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">2. Physical Attributes</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Age</label>
-                        <input type="number" name="age" value={formData.age} onChange={handleProfileChange} placeholder="e.g. 21" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Height</label>
-                        <input type="text" name="height" value={formData.height} onChange={handleProfileChange} placeholder="e.g. 178 cm" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Weight</label>
-                        <input type="text" name="weight" value={formData.weight} onChange={handleProfileChange} placeholder="e.g. 74 kg" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
-                      </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 font-display">2. Athletic Info</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">Age</label>
+                      <input type="number" name="age" value={formData.age} onChange={handleProfileChange} placeholder="e.g. 21" className={INPUT_CLASS} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">City</label>
+                      <input type="text" name="city" value={formData.city} onChange={handleProfileChange} placeholder="e.g. Bengaluru" className={INPUT_CLASS} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">Club / Facility</label>
+                      <input type="text" name="club_name" value={formData.club_name} onChange={handleProfileChange} placeholder="Club Name" className={INPUT_CLASS} />
                     </div>
                   </div>
-
-                  {/* Cricket Batsman Specialization */}
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">3. Cricket Profile (Batsman Focus)</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="md:col-span-2">
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Club / Academy Name</label>
-                        <input type="text" name="club_name" value={formData.club_name} onChange={handleProfileChange} placeholder="e.g. Shivaji Park Gymkhana" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Primary Role</label>
-                        <select name="playing_role" value={formData.playing_role} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm">
-                          <option value="Batsman">Batsman</option>
-                          <option value="Wicket-keeper Batsman">Wicket-keeper Batsman</option>
-                          <option value="All-rounder">All-rounder (Batting focus)</option>
-                          <option value="Bowler">Bowler</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Secondary Role</label>
-                        <select name="secondary_role" value={formData.secondary_role} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm">
-                          <option value="Bowler">Bowler</option>
-                          <option value="Wicket-keeper">Wicket-keeper</option>
-                          <option value="All-rounder">All-rounder</option>
-                          <option value="None">None (Pure Batsman)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Batting Hand</label>
-                        <select name="batting_hand" value={formData.batting_hand} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm">
-                          <option value="Right-hand bat">Right-hand bat</option>
-                          <option value="Left-hand bat">Left-hand bat</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Preferred Playing Position</label>
-                        <select name="preferred_position" value={formData.preferred_position} onChange={handleProfileChange} className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm">
-                          <option value="Top-Order Batsman">Top-Order Batsman (No. 1-3)</option>
-                          <option value="Opening Batsman">Opening Batsman (No. 1-2)</option>
-                          <option value="Middle-Order Batsman">Middle-Order Batsman (No. 4-5)</option>
-                          <option value="Finisher / Lower-Order">Finisher / Lower-Order (No. 6-7)</option>
-                        </select>
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Bowling Style</label>
-                        <input type="text" name="bowling_style" value={formData.bowling_style} onChange={handleProfileChange} placeholder="e.g. Right-arm medium fast" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
-                      </div>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
 
-              {/* COACH / PROFESSIONAL SPECIFIC SECTIONS */}
               {isCoach && (
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">2. Coaching Credentials & Academy</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 font-display">2. Professional Practice</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Academy / Organization Name</label>
-                      <input type="text" name="academy_name" value={formData.academy_name} onChange={handleProfileChange} placeholder="e.g. National Cricket Academy" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">Academy / Institution</label>
+                      <input type="text" name="academy_name" value={formData.academy_name} onChange={handleProfileChange} placeholder="Karnataka State Cricket Academy" className={INPUT_CLASS} />
                     </div>
-
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Session Rate (₹ INR)</label>
-                      <input type="number" name="session_price" value={formData.session_price} onChange={handleProfileChange} placeholder="e.g. 1500" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Training Ground / Net Facility Address</label>
-                      <input type="text" name="address" value={formData.address} onChange={handleProfileChange} placeholder="e.g. Chinnaswamy Stadium Complex, Gate 3 Nets" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">Charges per Session (INR)</label>
+                      <input type="number" name="session_price" value={formData.session_price} onChange={handleProfileChange} placeholder="1500" className={INPUT_CLASS} />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Location */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">City</label>
-                  <input type="text" name="city" value={formData.city} onChange={handleProfileChange} placeholder="e.g. Mumbai" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">State</label>
-                  <input type="text" name="state" value={formData.state} onChange={handleProfileChange} placeholder="e.g. Maharashtra" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
-                </div>
+              <div className="pt-2">
+                <button type="submit" className="bg-[#ff5500] hover:bg-[#ea4c00] text-white font-bold px-6 py-2.5 rounded-lg text-xs transition shadow-sm font-display">
+                  Save Changes
+                </button>
               </div>
-
-              <button type="submit" className="w-full bg-orange-500 text-white font-bold py-3.5 rounded-xl hover:bg-orange-600 transition shadow-lg shadow-orange-500/20 text-sm">
-                Save Profile Details
-              </button>
             </form>
           )}
 
           {activeTab === 'security' && (
-            <form onSubmit={handlePasswordSubmit} className="space-y-5">
+            <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-md">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Current Password</label>
-                <input type="password" name="old_password" value={passwordData.old_password} onChange={handlePasswordChange} required className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">Current Password</label>
+                <input type="password" name="old_password" value={passwordData.old_password} onChange={handlePasswordChange} required className={INPUT_CLASS} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">New Password</label>
-                <input type="password" name="new_password1" value={passwordData.new_password1} onChange={handlePasswordChange} required minLength="8" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">New Password</label>
+                <input type="password" name="new_password1" value={passwordData.new_password1} onChange={handlePasswordChange} required className={INPUT_CLASS} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Confirm New Password</label>
-                <input type="password" name="new_password2" value={passwordData.new_password2} onChange={handlePasswordChange} required minLength="8" className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-orange-500 text-sm" />
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#0c2340] mb-1 font-display">Confirm New Password</label>
+                <input type="password" name="new_password2" value={passwordData.new_password2} onChange={handlePasswordChange} required className={INPUT_CLASS} />
               </div>
-              <button type="submit" className="w-full bg-slate-800 text-white font-bold py-3.5 rounded-xl hover:bg-slate-700 transition border border-slate-700 text-sm">
+              <button type="submit" className="bg-[#ff5500] hover:bg-[#ea4c00] text-white font-bold px-6 py-2.5 rounded-lg text-xs transition shadow-sm font-display">
                 Update Password
               </button>
             </form>
           )}
 
         </div>
+
       </div>
     </div>
   );

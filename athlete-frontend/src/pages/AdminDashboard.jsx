@@ -2,10 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 
 export default function AdminDashboard() {
   const currentAdmin = sessionStorage.getItem('user_name') || 'Admin';
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   // Primary State
   const [activeTab, setActiveTab] = useState('users'); // 'users', 'finance', 'activity'
@@ -84,7 +86,7 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Failed to load admin data:', err);
       if (err.response?.status === 403) {
-        alert("Unauthorized access. Admin privileges required.");
+        addToast("Unauthorized access. Admin privileges required.", "error");
         navigate('/login');
       }
     } finally {
@@ -191,21 +193,25 @@ export default function AdminDashboard() {
     }
   };
 
+  // --- Handlers: Coach Availability Toggle ---
+  const handleToggleCoachAvailability = async (coachUser) => {
+    const current = coachUser.professional_profile?.is_available ?? true;
+    try {
+      const res = await api.patch('coach/availability', {
+        coach_id: coachUser.id,
+        is_available: !current,
+      });
+      showToast('success', res.data.message);
+      loadAllData();
+    } catch (err) {
+      showToast('error', 'Failed to toggle coach availability.');
+    }
+  };
+
   // --- Handlers: Inspection Modal ---
-  const handleInspectUser = async (user) => {
+  const handleInspectUser = (user) => {
     setInspectedUser(user);
     setInspectedStats(null);
-    if (user.role === 'ATHLETE') {
-      setLoadingStats(true);
-      try {
-        const res = await api.get(`cricket-stats/athlete/${user.id}/`);
-        setInspectedStats(res.data);
-      } catch (err) {
-        console.error('Failed to load athlete stats:', err);
-      } finally {
-        setLoadingStats(false);
-      }
-    }
   };
 
   // --- Handlers: Create Account ---
@@ -276,21 +282,21 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-300">
-        <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-sm font-semibold tracking-wider uppercase text-slate-400">Loading Platform Control Center...</p>
+      <div className="min-h-screen bg-[#faf8ff] text-[#0c2340] flex flex-col items-center justify-center font-sans">
+        <div className="w-8 h-8 border-4 border-[#ff5500] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-xs font-bold tracking-wider uppercase text-slate-500 font-display">Loading Platform Control Center...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8">
+    <div className="min-h-screen bg-[#faf8ff] text-[#0c2340] selection:bg-[#ff5500] selection:text-white p-4 md:p-8 font-sans overflow-x-hidden w-full max-w-[100vw]">
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* TOP STATUS TOAST NOTIFICATION */}
         {statusNotification.message && (
           <div className={`p-4 rounded-xl text-sm font-bold flex justify-between items-center shadow-lg transition-all ${
-            statusNotification.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+            statusNotification.type === 'success' ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-800 border border-red-200'
           }`}>
             <span>{statusNotification.type === 'success' ? '✓' : '⚠'} {statusNotification.message}</span>
             <button onClick={() => setStatusNotification({ type: '', message: '' })} className="text-xs hover:opacity-80">✕</button>
@@ -298,31 +304,31 @@ export default function AdminDashboard() {
         )}
 
         {/* HEADER & QUICK ACTIONS */}
-        <header className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <span className="bg-orange-500/20 border border-orange-500/40 text-orange-400 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+              <span className="bg-orange-50 border border-orange-200 text-[#ff5500] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider font-display">
                 Platform Admin
               </span>
-              <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+              <span className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Systems Live
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black text-white mt-2 tracking-tight">Platform Control Center</h1>
-            <p className="text-slate-400 text-sm mt-0.5">Role-Based Access Control, Account Provisioning & System Monitoring</p>
+            <h1 className="text-2xl md:text-3xl font-black text-[#0c2340] mt-2 tracking-tight font-display">Platform Control Center</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Role-Based Access Control, Account Provisioning &amp; System Monitoring</p>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={loadAllData}
               disabled={refreshing}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 border border-slate-700"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 border border-slate-200 font-display"
             >
               <span className={refreshing ? "animate-spin" : ""}>↻</span> Refresh
             </button>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-lg shadow-orange-500/25 flex items-center gap-2"
+              className="bg-[#ff5500] hover:bg-[#ea4c00] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2 font-display"
             >
               <span>＋</span> Create User Account
             </button>
@@ -344,7 +350,7 @@ export default function AdminDashboard() {
           <div className="bg-slate-900 border border-purple-500/30 border-l-4 border-l-purple-500 rounded-xl p-4 shadow-sm">
             <p className="text-xs font-bold text-purple-400 uppercase tracking-wider">Coaches</p>
             <p className="text-2xl md:text-3xl font-black text-white mt-1">{summary.total_professionals}</p>
-            <p className="text-[11px] text-slate-500 mt-1">Verified Mentors</p>
+            <p className="text-[11px] text-slate-500 mt-1">Verified Trainers</p>
           </div>
           <div className="bg-slate-900 border border-red-500/30 border-l-4 border-l-red-500 rounded-xl p-4 shadow-sm">
             <p className="text-xs font-bold text-red-400 uppercase tracking-wider">Admins</p>
@@ -546,13 +552,25 @@ export default function AdminDashboard() {
                                 </div>
                               )}
                               {isCoach && (
-                                <div className="space-y-0.5">
+                                <div className="space-y-1">
                                   <div className="font-semibold text-purple-300 flex items-center gap-1">
-                                    <span>👨‍🏫</span> {u.professional_profile?.speciality?.name || 'Cricket Coach'}
+                                    <span>👨‍🏫</span> {u.professional_profile?.speciality?.name || 'Trainer'}
                                   </div>
-                                  <div className="text-[11px] text-slate-400 truncate max-w-[200px]">
-                                    {u.professional_profile?.academy_name || 'National Cricket Academy'} • ₹{u.professional_profile?.session_price || '1500'}/hr
+                                  <div className="text-[11px] text-slate-400 truncate max-w-[220px]">
+                                    {u.professional_profile?.institution_club || u.professional_profile?.academy_name || 'Independent'} • ₹{u.professional_profile?.charges_per_session || u.professional_profile?.session_price || '1000'} • {u.professional_profile?.training_mode || 'Both'}
                                   </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleCoachAvailability(u)}
+                                    className={`inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold border transition ${
+                                      u.professional_profile?.is_available !== false
+                                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                                        : 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
+                                    }`}
+                                  >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${u.professional_profile?.is_available !== false ? 'bg-emerald-400' : 'bg-red-400'}`}></span>
+                                    {u.professional_profile?.is_available !== false ? 'Available (Click to Toggle)' : 'Unavailable (Click to Toggle)'}
+                                  </button>
                                 </div>
                               )}
                               {isAdminRole && (
@@ -577,13 +595,13 @@ export default function AdminDashboard() {
                             <td className="px-5 py-3.5 text-right">
                               <div className="flex items-center justify-end gap-1.5">
                                 
-                                {/* Inspect Profile / Batsman Stats */}
+                                {/* Inspect Profile */}
                                 <button
                                   onClick={() => handleInspectUser(u)}
                                   className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1.5 rounded text-[11px] font-bold transition border border-slate-700"
-                                  title="Inspect Profile & Scorecard"
+                                  title="Inspect Profile"
                                 >
-                                  {isAthlete ? '🏏 Batsman Card' : '🔍 Inspect'}
+                                  🔍 Inspect
                                 </button>
 
                                 {/* Impersonate User */}
@@ -1041,101 +1059,36 @@ export default function AdminDashboard() {
               <button onClick={() => setInspectedUser(null)} className="text-slate-400 hover:text-white text-lg font-bold">✕</button>
             </div>
 
-            {/* If Athlete: Render Complete Batsman Card Details */}
+            {/* If Athlete: Render Athlete Onboarding Profile */}
             {inspectedUser.role === 'ATHLETE' ? (
               <div className="mt-5 space-y-5">
                 <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
-                  <p className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-2">Cricket Batsman Profile</p>
+                  <p className="text-xs font-bold text-orange-400 uppercase tracking-wider mb-3">Athlete Booking Profile</p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div>
-                      <span className="text-slate-500 block">Playing Role</span>
-                      <span className="font-semibold text-white">{inspectedUser.athlete_profile?.playing_role || 'Batsman'}</span>
+                      <span className="text-slate-500 block">Age</span>
+                      <span className="font-semibold text-white">{inspectedUser.athlete_profile?.age || '—'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Club / Academy</span>
-                      <span className="font-semibold text-white">{inspectedUser.athlete_profile?.club_name || 'Shivaji Park Gymkhana'}</span>
+                      <span className="text-slate-500 block">Profession</span>
+                      <span className="font-semibold text-white">{inspectedUser.athlete_profile?.profession || '—'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Batting Hand</span>
-                      <span className="font-semibold text-white">{inspectedUser.athlete_profile?.batting_hand || 'Right-hand bat'}</span>
+                      <span className="text-slate-500 block">Pincode</span>
+                      <span className="font-semibold text-white">{inspectedUser.athlete_profile?.pincode || '—'}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block">Preferred Position</span>
-                      <span className="font-semibold text-white">{inspectedUser.athlete_profile?.preferred_position || 'Top-Order'}</span>
+                      <span className="text-slate-500 block">Mobile</span>
+                      <span className="font-semibold text-white">{inspectedUser.mobile_number || '—'}</span>
                     </div>
                   </div>
+                  {inspectedUser.athlete_profile?.address && (
+                    <div className="mt-3 pt-3 border-t border-slate-800 text-xs text-slate-300">
+                      <span className="text-slate-500 block">Address</span>
+                      {inspectedUser.athlete_profile.address}
+                    </div>
+                  )}
                 </div>
-
-                {loadingStats ? (
-                  <div className="text-center py-8 text-slate-500 text-xs">Loading cricket scorecard stats...</div>
-                ) : inspectedStats ? (
-                  <>
-                    {/* Key Batsman Metrics */}
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center">
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <span className="text-[10px] text-slate-500 uppercase block font-bold">Matches</span>
-                        <span className="text-lg font-black text-white">{inspectedStats.matches_played || 0}</span>
-                      </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <span className="text-[10px] text-slate-500 uppercase block font-bold">Runs</span>
-                        <span className="text-lg font-black text-orange-400">{inspectedStats.runs_made || 0}</span>
-                      </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <span className="text-[10px] text-slate-500 uppercase block font-bold">Average</span>
-                        <span className="text-lg font-black text-white">{inspectedStats.average || 0}</span>
-                      </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <span className="text-[10px] text-slate-500 uppercase block font-bold">Strike Rate</span>
-                        <span className="text-lg font-black text-emerald-400">{inspectedStats.strike_rate || 0}</span>
-                      </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <span className="text-[10px] text-slate-500 uppercase block font-bold">100s / 50s</span>
-                        <span className="text-lg font-black text-white">{inspectedStats.centuries || 0} / {inspectedStats.half_centuries || 0}</span>
-                      </div>
-                      <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                        <span className="text-[10px] text-slate-500 uppercase block font-bold">Boundaries</span>
-                        <span className="text-lg font-black text-amber-400">{inspectedStats.fours || 0} 4s • {inspectedStats.sixes || 0} 6s</span>
-                      </div>
-                    </div>
-
-                    {/* Pace vs Spin Matchups */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
-                        <span className="text-xs font-bold text-blue-400 uppercase tracking-wider block">⚡ Against Medium Fast</span>
-                        <div className="flex justify-between text-xs text-slate-400">
-                          <span>Balls Faced:</span>
-                          <span className="text-white font-bold">{inspectedStats.balls_faced_medium_fast || 0}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-slate-400">
-                          <span>Runs Scored:</span>
-                          <span className="text-emerald-400 font-bold">{inspectedStats.runs_scored_medium_fast || 0}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-slate-400">
-                          <span>Dismissals:</span>
-                          <span className="text-red-400 font-bold">{inspectedStats.dismissals_medium_fast || 0}</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
-                        <span className="text-xs font-bold text-purple-400 uppercase tracking-wider block">🌀 Against Spin</span>
-                        <div className="flex justify-between text-xs text-slate-400">
-                          <span>Balls Faced:</span>
-                          <span className="text-white font-bold">{inspectedStats.balls_faced_spin || 0}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-slate-400">
-                          <span>Runs Scored:</span>
-                          <span className="text-emerald-400 font-bold">{inspectedStats.runs_scored_spin || 0}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-slate-400">
-                          <span>Dismissals:</span>
-                          <span className="text-red-400 font-bold">{inspectedStats.dismissals_spin || 0}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-4 text-slate-500 text-xs">No cricket performance metrics logged yet for this athlete.</div>
-                )}
               </div>
             ) : inspectedUser.role === 'PROFESSIONAL' ? (
               <div className="mt-5 space-y-4 text-xs">

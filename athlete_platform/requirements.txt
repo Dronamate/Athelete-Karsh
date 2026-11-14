@@ -43,3 +43,4 @@ whitenoise
 zope.interface
 dj-database-url
 google-generativeai
+firebase-admin

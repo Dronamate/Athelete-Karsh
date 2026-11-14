@@ -12,29 +12,23 @@ class CustomUserAdmin(UserAdmin):
     """
     model = CustomUser
     
-    # 1. Add our custom 'role' field to the detail view layout.
-    # We append it as a new section so we don't overwrite the default fields (like username, email, passwords).
     fieldsets = UserAdmin.fieldsets + (
-        ('Role & Dashboard Access', {'fields': ('role',)}),
+        ('Role & Contact', {'fields': ('role', 'mobile_number')}),
     )
     
-    # 2. Define what columns show up in the main table list view.
-    # Adding 'role' here makes it easy to scan who is an Athlete vs Professional at a glance.
-    list_display = ['username', 'email', 'first_name', 'last_name', 'role', 'is_staff']
+    list_display = ['username', 'email', 'mobile_number', 'first_name', 'last_name', 'role', 'is_staff']
     
-    # 3. Add filters to the right sidebar so admins can quickly filter by role.
     list_filter = ['role', 'is_staff', 'is_active']
 
-# 4. Register the model and the customized admin class together.
 admin.site.register(CustomUser, CustomUserAdmin)
 
 @admin.register(AthleteProfile)
 class AthleteProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'primary_sport', 'city']
-    search_fields = ['user__username', 'primary_sport']
+    list_display = ['user', 'age', 'profession', 'pincode']
+    search_fields = ['user__username', 'user__email', 'pincode', 'profession']
 
 @admin.register(ProfessionalProfile)
 class ProfessionalProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'speciality', 'is_certified']
-    list_filter = ['is_certified', 'speciality']
-    search_fields = ['user__username', 'speciality']
+    list_display = ['user', 'institution_club', 'training_mode', 'charges_per_session', 'is_certified', 'is_available']
+    list_filter = ['is_certified', 'is_available', 'training_mode']
+    search_fields = ['user__username', 'user__email', 'institution_club', 'pincode']

@@ -25,21 +25,43 @@ class AvailabilitySlotViewSet(viewsets.ModelViewSet):
     """
     queryset = AvailabilitySlot.objects.all()
     serializer_class = AvailabilitySlotSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        if self.request.user.role == 'ATHLETE':
+        queryset = super().get_queryset().select_related(
+            'professional', 'professional__professional_profile', 'professional__professional_profile__speciality'
+        ).prefetch_related('professional__professional_profile__expertise')
+
+        if self.request.user.is_authenticated and self.request.user.role == 'PROFESSIONAL':
+            queryset = queryset.filter(professional=self.request.user)
+        elif not self.request.user.is_authenticated or self.request.user.role == 'ATHLETE':
             from django.utils import timezone
-            return queryset.annotate(
+            queryset = queryset.annotate(
                 paid_bookings=Count('booking_record', filter=Q(booking_record__payment_status='PAID'))
             ).filter(
                 paid_bookings__lt=F('max_capacity'),
                 is_cancelled=False,
                 date__gte=timezone.now().date()
             )
-        elif self.request.user.role == 'PROFESSIONAL':
-            return queryset.filter(professional=self.request.user)
+
+        category = self.request.query_params.get('category', '').strip()
+        training_mode = self.request.query_params.get('training_mode', '').strip()
+        coach_id = self.request.query_params.get('coach_id', '').strip()
+
+        if category and category.upper() != 'ALL':
+            queryset = queryset.filter(
+                Q(professional__professional_profile__expertise__name__iexact=category)
+                | Q(professional__professional_profile__speciality__name__iexact=category)
+            ).distinct()
+
+        if training_mode and training_mode.upper() != 'ALL':
+            mode_upper = training_mode.upper()
+            if mode_upper in ('ONLINE', 'OFFLINE'):
+                queryset = queryset.filter(session_type=mode_upper)
+
+        if coach_id and coach_id.isdigit():
+            queryset = queryset.filter(professional_id=int(coach_id))
+
         return queryset
 
 
@@ -210,6 +232,10 @@ class BookingViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         slot = serializer.validated_data['slot']
+
+        pro_profile = getattr(slot.professional, 'professional_profile', None)
+        if pro_profile and not pro_profile.is_available:
+            raise serializers.ValidationError({"slot": "This coach is currently unavailable for bookings."})
 
         # Check for duplicate bookings
         if Booking.objects.filter(slot=slot, athlete=self.request.user).exists():

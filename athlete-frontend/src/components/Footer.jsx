@@ -1,162 +1,261 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import BrandLogo from './BrandLogo';
 
 export default function Footer() {
   const [modalContent, setModalContent] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const openModal = (type) => setModalContent(type);
   const closeModal = () => setModalContent(null);
 
+  const handleNavClick = (hash) => {
+    if (location.pathname === '/') {
+      const el = document.querySelector(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate('/' + hash);
+    }
+  };
+
   return (
     <>
-      <footer className="bg-slate-950 text-slate-400 py-12 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
-          
-          {/* Brand Info */}
-          <div className="col-span-1 md:col-span-1">
-            <Link to="/" className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg mb-4 transition hover:opacity-90">
-              <img src="/logo.png" alt="DronaMate Logo" className="h-8 w-auto" />
-            </Link>
-            <p className="text-sm text-slate-400 leading-relaxed mt-2">
-              DronaMate connects athletes with top-tier coaches, smart cricket metrics, and performance analytics. Master your batting craft against pace and spin.
-            </p>
-            <div className="mt-4 space-y-1.5 text-xs text-slate-400">
-              <p className="flex items-center gap-2">
-                <span className="text-orange-500 font-bold">Call:</span>
-                <a href="tel:+919368029835" className="hover:text-orange-400 font-mono transition">
-                  +91 93680 29835
-                </a>
+      <footer className="bg-[#0c2340] text-slate-300 font-sans border-t border-slate-800 w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 pb-12 border-b border-slate-800/80">
+
+            {/* Brand Column (5 cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              <Link to="/" className="inline-block transition-opacity hover:opacity-95" title="DronaMate">
+                <BrandLogo inverted size="lg" />
+              </Link>
+              <p className="text-xs sm:text-sm text-slate-400 max-w-sm leading-relaxed">
+                Next-generation athletic mentorship, sports telemetry tracking, and elite coach reservation platform designed to accelerate field-ready performance.
               </p>
-              <p className="flex items-center gap-2">
-                <span className="text-orange-500 font-bold">Email:</span>
-                <a href="mailto:support@dronamate.in" className="hover:text-orange-400 transition">
-                  support@dronamate.in
+
+              <div className="pt-2 space-y-2 text-xs text-slate-300">
+                <a
+                  href="mailto:info@dronamate.in"
+                  className="flex items-center gap-2 hover:text-white transition group"
+                  title="Send us an email"
+                >
+                  <span className="text-[#ff5500]">✉</span>
+                  <span className="group-hover:underline">info@dronamate.in</span>
                 </a>
-              </p>
+                <a
+                  href="tel:+918219486269"
+                  className="flex items-center gap-2 hover:text-white transition group"
+                  title="Call our booking support"
+                >
+                  <span className="text-[#ff5500]">📞</span>
+                  <span className="font-mono group-hover:underline">+91 8219486269</span>
+                </a>
+              </div>
             </div>
-          </div>
-          
-          {/* Platform */}
-          <div>
-            <h3 className="text-white font-bold mb-4 uppercase text-xs tracking-wider">Platform</h3>
-            <ul className="space-y-2.5 text-sm">
-              <li>
-                <Link to="/register" className="hover:text-orange-400 transition">
-                  Find a Cricket Coach
-                </Link>
-              </li>
-              <li>
-                <Link to="/register" className="hover:text-orange-400 transition">
-                  Join as Coach / Mentor
-                </Link>
-              </li>
-              <li>
-                <Link to="/performance" className="hover:text-orange-400 transition">
-                  Performance & Batsman Card
-                </Link>
-              </li>
-            </ul>
+
+            {/* Links Columns (7 cols) */}
+            <div className="lg:col-span-7 grid grid-cols-2 sm:grid-cols-3 gap-8 text-xs">
+              {/* Training */}
+              <div>
+                <h4 className="text-white font-bold uppercase tracking-wider mb-4 font-display">
+                  Training
+                </h4>
+                <ul className="space-y-2.5 text-slate-400">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('#categories')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      All Disciplines
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('#blueprint')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Performance Blueprint
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('#audit')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Biomechanical Audits
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('#coaches')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Academy Scouting
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Verified Directory */}
+              <div>
+                <h4 className="text-white font-bold uppercase tracking-wider mb-4 font-display">
+                  Verified Directory
+                </h4>
+                <ul className="space-y-2.5 text-slate-400">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('#coaches')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      BCCI Certified Coaches
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('#coaches')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Pro Strength Specialists
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick('#coaches')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Field Physio Specialists
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => openModal('verification')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Verification Protocol
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Platform */}
+              <div>
+                <h4 className="text-white font-bold uppercase tracking-wider mb-4 font-display">
+                  Platform
+                </h4>
+                <ul className="space-y-2.5 text-slate-400">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => openModal('about')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      About Us
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => openModal('facilities')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Partner Facilities
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => openModal('privacy')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Privacy Policy
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => openModal('terms')}
+                      className="hover:text-white transition text-left cursor-pointer"
+                    >
+                      Terms of Service
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
           </div>
 
-          {/* Company */}
-          <div>
-            <h3 className="text-white font-bold mb-4 uppercase text-xs tracking-wider">Company</h3>
-            <ul className="space-y-2.5 text-sm">
-              <li>
-                <a href="/#about" className="hover:text-orange-400 transition">
-                  About DronaMate
-                </a>
-              </li>
-              <li>
-                <button 
-                  onClick={() => openModal('careers')} 
-                  className="hover:text-orange-400 transition text-left"
-                >
-                  Careers
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => openModal('contact')} 
-                  className="hover:text-orange-400 transition text-left"
-                >
-                  Contact Support
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div>
-            <h3 className="text-white font-bold mb-4 uppercase text-xs tracking-wider">Legal</h3>
-            <ul className="space-y-2.5 text-sm">
-              <li>
-                <button 
-                  onClick={() => openModal('privacy')} 
-                  className="hover:text-orange-400 transition text-left"
-                >
-                  Privacy Policy
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => openModal('terms')} 
-                  className="hover:text-orange-400 transition text-left"
-                >
-                  Terms of Service
-                </button>
-              </li>
-            </ul>
-          </div>
-
-        </div>
-
-        {/* Bottom bar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>&copy; {new Date().getFullYear()} DronaMate Inc. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <a href="tel:+919368029835" className="hover:text-slate-300 transition">
-              +91 93680 29835
-            </a>
-            <span className="text-slate-700">•</span>
-            <a href="mailto:support@dronamate.in" className="hover:text-slate-300 transition">
-              support@dronamate.in
-            </a>
+          {/* Bottom Bar */}
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <p>© {new Date().getFullYear()} Drona Mate Systems Pvt Ltd. All athletic rights reserved.</p>
+            <div className="flex items-center gap-2 text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="font-mono text-[11px] tracking-wider uppercase">
+                High Performance Network Live
+              </span>
+            </div>
           </div>
         </div>
       </footer>
 
-      {/* Modal Dialog for Legal / Company Links */}
+      {/* Dynamic Modals */}
       {modalContent && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl text-slate-200">
-            
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0c2340] border border-slate-700 rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl text-slate-200">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
-              <h3 className="text-lg font-bold text-white">
+              <h3 className="text-lg font-bold text-white font-display">
+                {modalContent === 'about' && 'About DronaMate'}
                 {modalContent === 'privacy' && 'Privacy Policy'}
                 {modalContent === 'terms' && 'Terms of Service'}
-                {modalContent === 'careers' && 'Careers at DronaMate'}
-                {modalContent === 'contact' && 'Contact DronaMate Support'}
+                {modalContent === 'verification' && 'Verification Protocol'}
+                {modalContent === 'facilities' && 'Partner Training Facilities'}
               </h3>
-              <button 
-                onClick={closeModal} 
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+              <button
+                type="button"
+                onClick={closeModal}
+                className="text-slate-400 hover:text-white text-lg font-bold p-1 cursor-pointer"
+                aria-label="Close modal"
               >
                 ✕
               </button>
             </div>
 
-            <div className="text-sm leading-relaxed space-y-3 text-slate-300">
+            <div className="text-xs leading-relaxed space-y-3 text-slate-300">
+              {modalContent === 'about' && (
+                <>
+                  <p>
+                    DronaMate is India's dedicated coach and trainer booking platform engineered for athletes striving for state, national, and competitive excellence.
+                  </p>
+                  <p>
+                    Our mission is to eliminate barriers between aspiring players and verified technical sports masters. We connect athletes with BCCI, ICC, CSCS, and accredited technical mentors across Cricket, Strength &amp; Conditioning, Physiotherapy, Dietetics, and Sports Yoga.
+                  </p>
+                  <p>
+                    For partnerships or academy inquiries, reach us at <a href="mailto:info@dronamate.in" className="text-[#ff5500] underline">info@dronamate.in</a> or call <a href="tel:+918219486269" className="text-[#ff5500] underline">+91 8219486269</a>.
+                  </p>
+                </>
+              )}
+
               {modalContent === 'privacy' && (
                 <>
                   <p>
-                    <strong>DronaMate</strong> is committed to safeguarding the personal and athletic data of our users. We collect profile details, match performance metrics (runs, strike rates, dismissals against pace and spin), and communication logs strictly to deliver personalized sports analysis and coaching services.
+                    DronaMate is committed to protecting your personal and athletic data. We collect profile, session reservation, and contact information strictly to coordinate coaching and training schedules.
                   </p>
                   <p>
-                    We do not sell, rent, or monetize your personal statistics to third-party advertisers. All biometric and performance data are securely encrypted in transit and at rest.
+                    We do not sell personal information to third parties. All booking credentials and transaction records are encrypted using industry standard protocols.
                   </p>
-                  <p className="text-xs text-slate-400">
-                    Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  <p>
+                    Contact <a href="mailto:info@dronamate.in" className="text-[#ff5500] underline">info@dronamate.in</a> for privacy or data inquiries.
                   </p>
                 </>
               )}
@@ -164,74 +263,46 @@ export default function Footer() {
               {modalContent === 'terms' && (
                 <>
                   <p>
-                    By registering or using the <strong>DronaMate</strong> platform, athletes and coaches agree to abide by our fair play policy and respectful communication standards.
+                    By booking or offering training sessions on DronaMate, you agree to adhere to our athletic conduct guidelines, arrive punctually at reserved facility slots, and honor cancellations in accordance with coach policies.
                   </p>
                   <p>
-                    Coaches agree that all tactical guidance and workout regimens are tailored responsibly. Athletes are advised to consult sports medicine practitioners before initiating intense physical conditioning.
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Governed by the laws of India. For full legal documentation, contact legal@dronamate.in.
+                    Coaches are independent sports professionals certified under relevant sports authorities. DronaMate acts as the connection and scheduling technology platform.
                   </p>
                 </>
               )}
 
-              {modalContent === 'careers' && (
+              {modalContent === 'verification' && (
                 <>
                   <p>
-                    We're building the future of cricket athlete intelligence and high-performance training.
+                    Every coach and trainer listed on DronaMate undergoes rigorous document inspection, verifying sporting certifications (BCCI, ICC, SAI, CSCS, NSCA, or affiliated sport federations), identity, and background.
                   </p>
                   <p>
-                    We are currently looking for sports data scientists, cricket coaches, and full-stack software engineers passionate about Indian sports.
+                    Look for the "Verified" badge on coach profiles to ensure certified technical instruction.
                   </p>
-                  <div className="p-4 bg-slate-800 rounded-xl border border-slate-700 mt-4">
-                    <p className="font-semibold text-white mb-1">Interested in joining our team?</p>
-                    <p className="text-xs text-slate-400 mb-3">Send your portfolio or CV to:</p>
-                    <a 
-                      href="mailto:careers@dronamate.in?subject=Application%20for%20DronaMate%20Team" 
-                      className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-lg text-xs transition"
-                    >
-                      careers@dronamate.in
-                    </a>
-                  </div>
                 </>
               )}
 
-              {modalContent === 'contact' && (
+              {modalContent === 'facilities' && (
                 <>
                   <p>
-                    Have questions about DronaMate or need help setting up your batsman profile?
+                    DronaMate partners with top tier cricket academies, indoor turf nets, strength gyms, and sports rehab centers across major Indian metros including Bengaluru, Mumbai, Delhi-NCR, Hyderabad, and Chennai.
                   </p>
-                  <div className="space-y-3 bg-slate-800/80 p-4 rounded-xl border border-slate-700 mt-3">
-                    <div>
-                      <span className="text-xs text-slate-400 uppercase font-bold block">Direct Hotline</span>
-                      <a href="tel:+919368029835" className="text-base font-bold text-orange-400 hover:underline">
-                        +91 93680 29835
-                      </a>
-                    </div>
-                    <div>
-                      <span className="text-xs text-slate-400 uppercase font-bold block">Support Email</span>
-                      <a href="mailto:support@dronamate.in" className="text-base font-bold text-orange-400 hover:underline">
-                        support@dronamate.in
-                      </a>
-                    </div>
-                    <div>
-                      <span className="text-xs text-slate-400 uppercase font-bold block">Support Hours</span>
-                      <span className="text-sm text-slate-300">Mon – Sat, 9:00 AM – 7:00 PM IST</span>
-                    </div>
-                  </div>
+                  <p>
+                    To onboard your facility as an accredited training partner ground, reach out to <a href="mailto:info@dronamate.in" className="text-[#ff5500] underline">info@dronamate.in</a> or call <a href="tel:+918219486269" className="text-[#ff5500] underline">+91 8219486269</a>.
+                  </p>
                 </>
               )}
             </div>
 
             <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
-              <button 
-                onClick={closeModal} 
-                className="px-5 py-2 rounded-xl bg-orange-500 text-white font-bold text-sm hover:bg-orange-600 transition"
+              <button
+                type="button"
+                onClick={closeModal}
+                className="bg-[#ff5500] hover:bg-[#ea4c00] text-white font-bold px-4 py-2 rounded-lg text-xs cursor-pointer font-display"
               >
                 Close
               </button>
             </div>
-
           </div>
         </div>
       )}

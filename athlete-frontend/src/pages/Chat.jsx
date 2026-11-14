@@ -109,18 +109,17 @@ export default function Chat() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto h-[calc(100vh-64px)] flex bg-white border-l border-r border-slate-200 shadow-sm">
+    <div className="max-w-7xl mx-auto h-[calc(100vh-64px)] flex bg-white border-l border-r border-slate-200 shadow-sm overflow-x-hidden w-full max-w-[100vw]">
       
       {/* Sidebar: Conversations List */}
-      <div className="w-1/3 border-r border-slate-200 flex flex-col bg-slate-50">
+      <div className={`w-full md:w-1/3 border-r border-slate-200 flex flex-col bg-slate-50 ${activeChat ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-4 border-b border-slate-200 bg-white flex justify-between items-center">
-          <h2 className="text-xl font-bold text-slate-800">Messages</h2>
-          {/* <button className="text-amber-600 font-bold">+</button> */}
+          <h2 className="text-xl font-bold text-slate-800 font-display">Messages</h2>
         </div>
         
         <div className="flex-1 overflow-y-auto">
           {conversations.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">No active conversations.</div>
+            <div className="p-8 text-center text-slate-500 text-xs">No active conversations.</div>
           ) : (
             conversations.map(conv => {
               const partner = getChatPartner(conv);
@@ -129,10 +128,10 @@ export default function Chat() {
                 <div 
                   key={conv.id} 
                   onClick={() => setActiveChat(conv)}
-                  className={`p-4 border-b border-slate-100 cursor-pointer transition ${isActive ? 'bg-amber-50 border-l-4 border-l-amber-500' : 'hover:bg-slate-100 border-l-4 border-l-transparent'}`}
+                  className={`p-4 border-b border-slate-100 cursor-pointer transition ${isActive ? 'bg-orange-50 border-l-4 border-l-[#ff5500]' : 'hover:bg-slate-100 border-l-4 border-l-transparent'}`}
                 >
-                  <h3 className="font-bold text-slate-800">{partner?.username || 'Unknown User'}</h3>
-                  <p className="text-sm text-slate-500 truncate">
+                  <h3 className="font-bold text-[#0c2340] font-display">{partner?.username || 'Unknown User'}</h3>
+                  <p className="text-xs text-slate-500 truncate mt-0.5">
                     {conv.latest_message ? conv.latest_message.content : 'No messages yet'}
                   </p>
                 </div>
@@ -143,14 +142,22 @@ export default function Chat() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="w-2/3 flex flex-col bg-white">
+      <div className={`w-full md:w-2/3 flex flex-col bg-white ${!activeChat ? 'hidden md:flex' : 'flex'}`}>
         {activeChat ? (
           <>
             <div className="p-4 border-b border-slate-200 bg-white shadow-sm z-10 flex items-center">
-              <div className="h-10 w-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-bold text-xl mr-3">
+              <button
+                type="button"
+                onClick={() => setActiveChat(null)}
+                className="md:hidden mr-3 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm"
+                title="Back to conversations"
+              >
+                ← Back
+              </button>
+              <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center text-[#ff5500] font-bold text-lg mr-3 font-display">
                 {getChatPartner(activeChat)?.username.charAt(0).toUpperCase()}
               </div>
-              <h2 className="text-xl font-bold text-slate-800">{getChatPartner(activeChat)?.username}</h2>
+              <h2 className="text-lg font-bold text-[#0c2340] font-display">{getChatPartner(activeChat)?.username}</h2>
             </div>
             
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
@@ -160,17 +167,17 @@ export default function Chat() {
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} items-end mb-4`}>
                     {!isMe && (
-                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-sm mr-2 flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-[#ff5500] font-bold text-xs mr-2 flex-shrink-0 font-display">
                         {showAvatar ? msg.sender.username.charAt(0).toUpperCase() : ''}
                       </div>
                     )}
                     <div className={`max-w-[70%] rounded-2xl px-4 py-2 relative shadow-sm ${
                       isMe 
-                        ? 'bg-amber-600 text-white rounded-br-sm' 
-                        : 'bg-white border border-slate-200 text-slate-800 rounded-bl-sm'
+                        ? 'bg-[#ff5500] text-white rounded-br-sm' 
+                        : 'bg-white border border-slate-200 text-[#0c2340] rounded-bl-sm'
                     }`}>
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                      <p className={`text-[10px] mt-1 text-right ${isMe ? 'text-amber-200' : 'text-slate-400'}`}>
+                      <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                      <p className={`text-[10px] mt-1 text-right ${isMe ? 'text-orange-100' : 'text-slate-400'}`}>
                         {new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </p>
                     </div>
@@ -187,14 +194,14 @@ export default function Chat() {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..." 
-                  className="flex-1 px-5 py-3 bg-slate-100 border-transparent rounded-full focus:outline-none focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition"
+                  className="flex-1 px-4 py-2.5 bg-slate-100 border border-transparent rounded-full focus:outline-none focus:bg-white focus:border-[#ff5500] text-xs sm:text-sm text-[#0c2340] transition"
                 />
                 <button 
                   type="submit" 
                   disabled={!newMessage.trim()}
-                  className="bg-amber-600 text-white h-12 w-12 rounded-full flex items-center justify-center font-bold hover:bg-amber-700 disabled:opacity-50 transition shadow-md"
+                  className="bg-[#ff5500] text-white h-10 w-10 rounded-full flex items-center justify-center font-bold hover:bg-[#ea4c00] disabled:opacity-50 transition shadow-sm shrink-0"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-0.5" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
                   </svg>
                 </button>
@@ -203,9 +210,9 @@ export default function Chat() {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center bg-slate-50">
-            <div className="text-slate-300 text-6xl mb-4">💬</div>
-            <h2 className="text-2xl font-bold text-slate-700 mb-2">Your Messages</h2>
-            <p className="text-slate-500 text-center max-w-md">
+            <div className="text-slate-300 text-5xl mb-3">💬</div>
+            <h2 className="text-xl font-bold text-[#0c2340] mb-1 font-display">Your Messages</h2>
+            <p className="text-slate-500 text-xs sm:text-sm text-center max-w-md">
               Select a conversation from the left to start chatting with your coach or athlete.
             </p>
           </div>

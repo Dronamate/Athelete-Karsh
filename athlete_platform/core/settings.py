@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import dj_database_url
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -9,12 +10,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-=14(i2h7^05-v^0*a*y9=t+f1y3$j($s#4h(_-m6e=m_y0#u1o')
+# Read SECRET_KEY and DEBUG from environment variables for Railway deployment
+SECRET_KEY = os.environ.get('SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-=14(i2h7^05-v^0*a*y9=t+f1y3$j($s#4h(_-m6e=m_y0#u1o'))
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', os.environ.get('DJANGO_DEBUG', 'False')).lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = [h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h.strip()]
-ALLOWED_HOSTS += ['127.0.0.1', 'localhost', 'athelete-karsh.onrender.com', '.onrender.com', 'dronamate.in', 'www.dronamate.in', '*']
+# Read ALLOWED_HOSTS from os.environ (defaulting to localhost for local testing) and parse as a list
+raw_allowed_hosts = os.environ.get('ALLOWED_HOSTS', os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1'))
+ALLOWED_HOSTS = [h.strip() for h in raw_allowed_hosts.split(',') if h.strip()]
 
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
@@ -54,6 +57,7 @@ INSTALLED_APPS = [
     'chat',
     'channels',
     'performance',
+    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -95,13 +99,12 @@ CHANNEL_LAYERS = {
     },
 }
 
-# Database
-import dj_database_url
-
+# Database: Neon PostgreSQL connection with connection pooling and health checks
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
+        default=os.environ.get('DATABASE_URL', f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        conn_max_age=600,
+        conn_health_checks=True,
     )
 }
 
@@ -132,6 +135,12 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrMobileBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -160,33 +169,42 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1:5173",
-    "http://127.0.0.1:5174",
-    "https://dronamate.in",
-    "https://www.dronamate.in",
-    "https://athelete-karsh.onrender.com",
-]
+raw_cors = os.environ.get('CORS_ALLOWED_ORIGINS')
+if raw_cors:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in raw_cors.split(',') if o.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5174",
+        "https://dronamate.in",
+        "https://www.dronamate.in",
+    ]
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.dronamate\.in$",
+    r"^https://.*\.railway\.app$",
     r"^https://.*\.hostingerapp\.com$",
     r"^https://.*\.onrender\.com$",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    "https://athelete-karsh.onrender.com",
-    "https://dronamate.in",
-    "https://www.dronamate.in",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+raw_csrf = os.environ.get('CSRF_TRUSTED_ORIGINS')
+if raw_csrf:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in raw_csrf.split(',') if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        "https://dronamate.in",
+        "https://www.dronamate.in",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
 
 # Media files
 MEDIA_URL = '/media/'

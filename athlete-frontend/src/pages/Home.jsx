@@ -1,687 +1,739 @@
 // src/pages/Home.jsx
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import CoachSearchFeed from '../components/CoachSearchFeed';
 
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
+  const token = sessionStorage.getItem('access_token');
+  const role = sessionStorage.getItem('user_role');
 
-  // Interactive Batsman Simulator State
-  const [selectedRoleType, setSelectedRoleType] = useState('top_order');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('ALL');
+  const [spotlightFilter, setSpotlightFilter] = useState('ALL');
 
   useEffect(() => {
     if (location.hash) {
-      const elem = document.querySelector(location.hash);
-      if (elem) {
-        elem.scrollIntoView({ behavior: 'smooth' });
-      }
+      document.querySelector(location.hash)?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [location]);
 
-  // Demo Coach Faculty Roster
-  const facultyCoaches = [
-    {
-      name: 'Rahul Dravid',
-      role: 'Top-Order Batting Coach',
-      academy: 'National Cricket Academy, Bangalore',
-      rate: '₹1,500',
-      experience: '18+ Years Pro',
-      badge: 'BCCI Level 3',
-      initials: 'RD',
-      color: 'from-orange-500 to-amber-600',
-      specialty: 'Defensive Anchor & Trigger Movements'
-    },
-    {
-      name: 'Vikram Rathour',
-      role: 'Power Hitting & Spin Specialist',
-      academy: 'Delhi Cricket Hub',
-      rate: '₹1,800',
-      experience: '15+ Years Pro',
-      badge: 'National Mentor',
-      initials: 'VR',
-      color: 'from-purple-500 to-indigo-600',
-      specialty: 'Bat Speed & Boundary Clearance'
-    },
-    {
-      name: 'Bharat Arun',
-      role: 'Fast & Medium Pace Bowling Coach',
-      academy: 'Chennai Bowling Academy',
-      rate: '₹1,600',
-      experience: '20+ Years Pro',
-      badge: 'Elite Master',
-      initials: 'BA',
-      color: 'from-blue-500 to-cyan-600',
-      specialty: 'Seam Presentation & Match Tactics'
-    }
-  ];
-
-  // Simulator Data for Batsman Card
-  const simulatorProfiles = {
-    top_order: {
-      title: 'Top-Order Anchor (No. 3)',
-      average: '48.60',
-      strikeRate: '138.4',
-      matches: '24',
-      runs: '972',
-      boundaries: '88 4s • 24 6s',
-      fastBalls: '340',
-      fastRuns: '476',
-      fastDismissals: '4',
-      spinBalls: '290',
-      spinRuns: '412',
-      spinDismissals: '3',
-      paceSR: '140.0',
-      spinSR: '142.1'
-    },
-    power_finisher: {
-      title: 'T20 Power Finisher (No. 6)',
-      average: '36.80',
-      strikeRate: '168.2',
-      matches: '28',
-      runs: '662',
-      boundaries: '42 4s • 48 6s',
-      fastBalls: '180',
-      fastRuns: '295',
-      fastDismissals: '5',
-      spinBalls: '140',
-      spinRuns: '248',
-      spinDismissals: '2',
-      paceSR: '163.8',
-      spinSR: '177.1'
-    },
-    opener: {
-      title: 'Opening Batsman (No. 1-2)',
-      average: '44.20',
-      strikeRate: '141.0',
-      matches: '26',
-      runs: '884',
-      boundaries: '94 4s • 22 6s',
-      fastBalls: '410',
-      fastRuns: '582',
-      fastDismissals: '7',
-      spinBalls: '210',
-      spinRuns: '292',
-      spinDismissals: '2',
-      paceSR: '141.9',
-      spinSR: '139.0'
+  const handleStartTraining = () => {
+    if (token && role === 'ATHLETE') {
+      navigate('/athlete');
+    } else if (token && role === 'PROFESSIONAL') {
+      navigate('/professional');
+    } else {
+      navigate('/register/athlete');
     }
   };
 
-  const currentSim = simulatorProfiles[selectedRoleType];
+  const handleSelectCategory = (categoryName) => {
+    setSelectedCategoryFilter(categoryName);
+    const coachesSection = document.getElementById('coaches');
+    if (coachesSection) {
+      coachesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white selection:bg-orange-500 selection:text-slate-950 font-sans">
-      
-      {/* ========================================================= */}
-      {/* 1. HERO SECTION: ACADEMY MASTERCLASS ATMOSPHERE           */}
-      {/* ========================================================= */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden border-b border-slate-900">
-        
-        {/* Ambient Gradient Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-orange-500/10 blur-[140px] pointer-events-none rounded-full"></div>
-        <div className="absolute top-1/3 right-10 w-[400px] h-[400px] bg-purple-500/5 blur-[120px] pointer-events-none rounded-full"></div>
+    <div className="min-h-screen bg-[#faf8ff] text-[#0c2340] selection:bg-[#ff5500] selection:text-white font-sans w-full overflow-x-hidden">
 
+      {/* 1. HERO SECTION (matching Image 3) */}
+      <section className="relative pt-8 pb-16 md:pt-14 md:pb-24 overflow-hidden border-b border-slate-200 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-8">
-            
-            {/* Left Column: Academy Value Prop */}
-            <div className="lg:w-1/2 text-center lg:text-left">
-              
-              {/* Season Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-orange-500/30 text-orange-400 text-xs font-bold uppercase tracking-wider mb-6 shadow-md shadow-orange-500/5">
-                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                DronaMate High-Performance Cricket Academy
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+
+            {/* Left Column (7 cols) */}
+            <div className="lg:col-span-7 text-left">
+              {/* Top Orange Pill Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-[#ff5500] text-xs font-bold uppercase tracking-wider mb-5 font-display">
+                <span className="w-2 h-2 rounded-full bg-[#ff5500] animate-pulse"></span>
+                <span>PRO ATHLETE / HIGH-PERFORMANCE TRAINING</span>
               </div>
 
-              {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] mb-6 text-white">
-                TRAIN LIKE A CHAMPION. <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500">
-                  MASTER EVERY MATCHUP.
-                </span>
+              {/* Display Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] mb-6 text-[#0c2340] font-display">
+                Train like a <span className="text-[#ff5500]">champion</span>,<br />
+                master your craft.
               </h1>
 
-              {/* Subtitle */}
-              <p className="text-base sm:text-lg text-slate-400 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                Connect with certified BCCI & ICC mentors, book 1-on-1 net masterclasses, and analyze your batsman metrics against medium fast pace vs mystery spin in a professional high-performance academy ecosystem.
+              {/* Sub-headline */}
+              <p className="text-base sm:text-lg text-slate-600 mb-8 max-w-xl leading-relaxed">
+                Connect and train with ICC, BCCI level and experienced coaches and trainers by booking 1 on 1 or group session. Elite mentorship tailored for athletic excellence across India.
               </p>
 
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                <button 
-                  onClick={() => navigate('/register')}
-                  className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-black px-8 py-4 rounded-xl transition duration-200 shadow-xl shadow-orange-500/25 text-sm flex items-center justify-center gap-2 group min-h-[48px]"
-                >
-                  <span>Start Academy Training</span>
-                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
-
-                <button 
-                  onClick={() => {
-                    const el = document.getElementById('coaches');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white font-bold px-7 py-4 rounded-xl transition border border-slate-800 hover:border-slate-700 text-sm min-h-[48px]"
-                >
-                  View Academy Coaches
-                </button>
-              </div>
-
-              {/* Verified Trust Strip */}
-              <div className="mt-10 pt-8 border-t border-slate-900/80 flex items-center justify-center lg:justify-start gap-6 text-xs text-slate-500 font-semibold">
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span> Verified Mentors
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span> BCCI Standard Drills
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span> Live Pace vs Spin Data
-                </div>
-              </div>
-
-            </div>
-
-            {/* Right Column: Hero Visual Card with High-Performance Batsman Card Overlay */}
-            <div className="lg:w-1/2 w-full max-w-lg mx-auto">
-              <div className="relative">
-                
-                {/* Visual Glassmorphic Frame */}
-                <div className="relative rounded-3xl overflow-hidden border border-slate-800 bg-slate-900/90 shadow-2xl p-2">
-                  
-                  {/* Cricket Visual Banner */}
-                  <div className="relative aspect-[16/10] rounded-2xl overflow-hidden group">
-                    <img 
-                      src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
-                      alt="Cricket Batsman Training at Nets" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-90"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
-                    
-                    {/* Live Badge */}
-                    <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md border border-slate-700/80 px-3 py-1 rounded-full flex items-center gap-2 text-[11px] font-bold text-white shadow-lg">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                      Academy Net Session Active
-                    </div>
-
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <span className="text-[11px] font-bold text-orange-400 uppercase tracking-wider block">Real-Time Technical Metrics</span>
-                      <p className="text-white font-black text-lg">Aryan Sharma • Shivaji Park Gymkhana</p>
-                    </div>
-                  </div>
-
-                  {/* Micro Batsman Scorecard Strip */}
-                  <div className="p-4 grid grid-cols-3 gap-2 mt-2">
-                    <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 text-center">
-                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Average</span>
-                      <span className="text-xl font-black text-emerald-400">48.6</span>
-                    </div>
-                    <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 text-center">
-                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Strike Rate</span>
-                      <span className="text-xl font-black text-orange-400">142.8</span>
-                    </div>
-                    <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 text-center">
-                      <span className="text-[10px] text-slate-500 uppercase font-bold block">100s / 50s</span>
-                      <span className="text-xl font-black text-white">2 / 5</span>
-                    </div>
-                  </div>
-
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-
-          {/* ========================================================= */}
-          {/* STATS STRIP: ACADEMY CREDIBILITY METRICS                  */}
-          {/* ========================================================= */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-800/80 shadow-xl">
-            <div className="text-center p-3">
-              <p className="text-3xl md:text-4xl font-black text-white">1,500+</p>
-              <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">Batsmen Developed</p>
-            </div>
-            <div className="text-center p-3 border-l border-slate-800/80">
-              <p className="text-3xl md:text-4xl font-black text-orange-400">12,000+</p>
-              <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">Coaching Net Overs</p>
-            </div>
-            <div className="text-center p-3 border-l border-slate-800/80">
-              <p className="text-3xl md:text-4xl font-black text-emerald-400">98.4%</p>
-              <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">Match Readiness</p>
-            </div>
-            <div className="text-center p-3 border-l border-slate-800/80">
-              <p className="text-3xl md:text-4xl font-black text-amber-400">4.9 ★</p>
-              <p className="text-xs font-semibold text-slate-400 mt-1 uppercase tracking-wider">Average Coach Rating</p>
-            </div>
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* ========================================================= */}
-      {/* 2. INTERACTIVE BATSMAN PERFORMANCE CARD SIMULATOR         */}
-      {/* ========================================================= */}
-      <section id="performance" className="py-24 bg-slate-950 border-b border-slate-900 scroll-mt-16 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="bg-orange-500/10 text-orange-400 border border-orange-500/30 px-3.5 py-1 rounded-full text-xs font-black tracking-wider uppercase mb-4 inline-block">
-              Cricket Intelligence Engine
-            </span>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-              The Batsman Performance Card
-            </h2>
-            <p className="text-slate-400 text-base md:text-lg mt-4">
-              Modern cricket is decided by fractions of a second. See how DronaMate tracks your technical numbers and breaks down pace vs spin execution.
-            </p>
-
-            {/* Role Simulator Tabs */}
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
-              <button
-                onClick={() => setSelectedRoleType('top_order')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-                  selectedRoleType === 'top_order' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-                }`}
-              >
-                Top-Order Anchor
-              </button>
-              <button
-                onClick={() => setSelectedRoleType('power_finisher')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-                  selectedRoleType === 'power_finisher' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-                }`}
-              >
-                T20 Power Finisher
-              </button>
-              <button
-                onClick={() => setSelectedRoleType('opener')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
-                  selectedRoleType === 'opener' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/25' : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-                }`}
-              >
-                Opening Batsman
-              </button>
-            </div>
-          </div>
-
-          {/* Interactive Card Presentation */}
-          <div className="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-            
-            {/* Header of Card */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4">
-              <div>
-                <span className="text-[11px] font-bold text-orange-400 uppercase tracking-wider block">Live Batsman Card Preview</span>
-                <h3 className="text-xl md:text-2xl font-black text-white mt-1">{currentSim.title}</h3>
-                <p className="text-xs text-slate-400">Shivaji Park Gymkhana • Right-Hand Bat</p>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span> Verified Data
-                </span>
+              {/* CTA Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 mb-10">
                 <button
-                  onClick={() => navigate('/register')}
-                  className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition border border-slate-700"
+                  type="button"
+                  onClick={handleStartTraining}
+                  className="bg-[#ff5500] hover:bg-[#ea4c00] text-white font-black px-7 py-3.5 rounded-lg transition duration-150 shadow-md shadow-[#ff5500]/25 text-sm flex items-center justify-center gap-2 group font-display cursor-pointer min-h-[44px]"
                 >
-                  Create Yours →
+                  <span>Start training.</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('blueprint')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="bg-white hover:bg-slate-50 text-[#0c2340] font-bold px-6 py-3.5 rounded-lg transition duration-150 border border-slate-200 text-sm flex items-center justify-center gap-2 shadow-sm font-display cursor-pointer min-h-[44px]"
+                >
+                  <span>⚡</span>
+                  <span>Explore Blueprint</span>
                 </button>
               </div>
-            </div>
 
-            {/* Overall Scorecard Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6">
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 text-center">
-                <span className="text-[11px] text-slate-500 uppercase font-bold block">Innings Average</span>
-                <span className="text-2xl md:text-3xl font-black text-emerald-400 mt-1 block">{currentSim.average}</span>
-                <span className="text-[10px] text-slate-500">{currentSim.matches} Matches Played</span>
-              </div>
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 text-center">
-                <span className="text-[11px] text-slate-500 uppercase font-bold block">Strike Rate</span>
-                <span className="text-2xl md:text-3xl font-black text-orange-400 mt-1 block">{currentSim.strikeRate}</span>
-                <span className="text-[10px] text-slate-500">Balls Faced: 600+</span>
-              </div>
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 text-center">
-                <span className="text-[11px] text-slate-500 uppercase font-bold block">Total Runs</span>
-                <span className="text-2xl md:text-3xl font-black text-white mt-1 block">{currentSim.runs}</span>
-                <span className="text-[10px] text-slate-500">Season 2026</span>
-              </div>
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800/80 text-center">
-                <span className="text-[11px] text-slate-500 uppercase font-bold block">Boundaries</span>
-                <span className="text-2xl md:text-3xl font-black text-amber-400 mt-1 block">{currentSim.boundaries.split('•')[0]}</span>
-                <span className="text-[10px] text-slate-500">{currentSim.boundaries.split('•')[1]}</span>
-              </div>
-            </div>
-
-            {/* Technical Pace vs Spin Matchup Split */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-              
-              {/* Medium Fast Pace */}
-              <div className="bg-slate-950 p-5 rounded-2xl border border-blue-500/20 relative overflow-hidden">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">⚡</span>
-                    <h4 className="font-bold text-sm text-blue-400 uppercase tracking-wider">Against Medium Fast Pace</h4>
-                  </div>
-                  <span className="text-xs font-mono font-bold text-white bg-blue-500/20 px-2.5 py-0.5 rounded border border-blue-500/30">
-                    SR: {currentSim.paceSR}
-                  </span>
+              {/* Verified Master Mentors Avatar Group */}
+              <div className="flex items-center gap-3 pt-4 border-t border-slate-200 flex-wrap">
+                <div className="flex -space-x-2">
+                  <img
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?fit=crop&w=120&h=120"
+                    alt="Coach 1"
+                  />
+                  <img
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                    src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?fit=crop&w=120&h=120"
+                    alt="Coach 2"
+                  />
+                  <img
+                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
+                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?fit=crop&w=120&h=120"
+                    alt="Coach 3"
+                  />
                 </div>
-
-                <div className="space-y-3 text-xs">
-                  <div className="flex justify-between text-slate-400">
-                    <span>Balls Faced:</span>
-                    <span className="font-bold text-white">{currentSim.fastBalls} Balls</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Runs Scored:</span>
-                    <span className="font-bold text-emerald-400">{currentSim.fastRuns} Runs</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Dismissals:</span>
-                    <span className="font-bold text-red-400">{currentSim.fastDismissals} Wickets</span>
-                  </div>
-                  
-                  {/* Progress visualization */}
-                  <div className="pt-2">
-                    <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '68%' }}></div>
-                    </div>
-                    <span className="text-[10px] text-slate-500 mt-1 block">Control percentage: 84% on front foot</span>
-                  </div>
+                <div className="text-xs font-semibold text-slate-600">
+                  <span className="text-[#0c2340] font-bold">Certified Master Mentors</span> • Guaranteed Credentials
                 </div>
               </div>
-
-              {/* Spin Bowling */}
-              <div className="bg-slate-950 p-5 rounded-2xl border border-purple-500/20 relative overflow-hidden">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">🌀</span>
-                    <h4 className="font-bold text-sm text-purple-400 uppercase tracking-wider">Against Spin Bowling</h4>
-                  </div>
-                  <span className="text-xs font-mono font-bold text-white bg-purple-500/20 px-2.5 py-0.5 rounded border border-purple-500/30">
-                    SR: {currentSim.spinSR}
-                  </span>
-                </div>
-
-                <div className="space-y-3 text-xs">
-                  <div className="flex justify-between text-slate-400">
-                    <span>Balls Faced:</span>
-                    <span className="font-bold text-white">{currentSim.spinBalls} Balls</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Runs Scored:</span>
-                    <span className="font-bold text-emerald-400">{currentSim.spinRuns} Runs</span>
-                  </div>
-                  <div className="flex justify-between text-slate-400">
-                    <span>Dismissals:</span>
-                    <span className="font-bold text-red-400">{currentSim.spinDismissals} Wickets</span>
-                  </div>
-                  
-                  {/* Progress visualization */}
-                  <div className="pt-2">
-                    <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                      <div className="bg-purple-500 h-2 rounded-full" style={{ width: '74%' }}></div>
-                    </div>
-                    <span className="text-[10px] text-slate-500 mt-1 block">Boundary strike: 1 boundary every 4.8 balls</span>
-                  </div>
-                </div>
-              </div>
-
             </div>
 
-          </div>
+            {/* Right Column: Hero Visual Card (5 cols) */}
+            <div className="lg:col-span-5 relative w-full max-w-md mx-auto lg:max-w-none">
+              <div className="relative rounded-2xl overflow-hidden shadow-xl border border-slate-200 bg-white">
+                {/* Visual Image */}
+                <div className="relative aspect-[4/5] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                    alt="Pro Coach Session"
+                    className="w-full h-full object-cover brightness-90"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c2340]/90 via-[#0c2340]/20 to-transparent"></div>
 
-        </div>
-      </section>
-
-      {/* ========================================================= */}
-      {/* 3. VERIFIED COACHING FACULTY: ELITE CRICKET MENTORS       */}
-      {/* ========================================================= */}
-      <section id="coaches" className="py-24 bg-slate-900 border-b border-slate-800 scroll-mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-            <div>
-              <span className="bg-purple-500/10 text-purple-400 border border-purple-500/30 px-3.5 py-1 rounded-full text-xs font-black tracking-wider uppercase mb-3 inline-block">
-                Academy Mentors
-              </span>
-              <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-                Learn from Certified Cricket Coaches
-              </h2>
-              <p className="text-slate-400 text-base max-w-xl mt-3">
-                Experience high-performance nets, video technical analysis, and mental mastery with mentors from premier cricket academies.
-              </p>
-            </div>
-
-            <button
-              onClick={() => navigate('/register')}
-              className="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs px-5 py-3 rounded-xl border border-slate-700 transition self-start md:self-auto"
-            >
-              Apply as Academy Coach →
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {facultyCoaches.map((coach, idx) => (
-              <div 
-                key={idx}
-                className="bg-slate-950 border border-slate-800 rounded-2xl p-6 shadow-xl hover:border-orange-500/40 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between"
-              >
-                <div>
-                  
-                  {/* Top Bar with Avatar & Badge */}
-                  <div className="flex items-center justify-between mb-5">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${coach.color} flex items-center justify-center font-black text-xl text-white shadow-lg`}>
-                      {coach.initials}
-                    </div>
-                    <span className="bg-slate-900 text-slate-300 border border-slate-700 px-3 py-1 rounded-full text-[11px] font-bold">
-                      {coach.badge}
+                  {/* Top Floating Badge */}
+                  <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-lg shadow-md border border-slate-100 flex items-center gap-2">
+                    <span className="text-[#ff5500]">🛡️</span>
+                    <span className="text-[11px] font-extrabold text-[#0c2340] uppercase tracking-wide font-display">
+                      100% Inspected - Certified Credentials
                     </span>
                   </div>
 
-                  <h3 className="text-xl font-black text-white">{coach.name}</h3>
-                  <p className="text-orange-400 text-xs font-bold mt-0.5">{coach.role}</p>
-                  <p className="text-slate-400 text-xs mt-1.5">{coach.academy}</p>
+                  {/* Bottom Coach Card Overlay */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-xl text-white">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white uppercase tracking-wider font-display">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                        HEAD COACH VERIFIED
+                      </span>
+                      <span className="bg-[#ff5500] text-white px-2.5 py-0.5 rounded font-black text-xs font-display">
+                        ₹3,200/hr
+                      </span>
+                    </div>
 
-                  <div className="my-5 p-3.5 bg-slate-900/80 rounded-xl border border-slate-800/80 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-slate-400">
-                      <span>Experience:</span>
-                      <span className="font-semibold text-white">{coach.experience}</span>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-lg font-black font-display tracking-tight text-white">
+                        Rajeshwar Sen
+                      </h4>
+                      <span className="text-[#ff5500]">✔</span>
                     </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Specialty:</span>
-                      <span className="font-semibold text-amber-400">{coach.specialty}</span>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>Rate:</span>
-                      <span className="font-bold text-emerald-400">{coach.rate} / hr</span>
-                    </div>
+                    <p className="text-xs text-slate-200">
+                      Former Ranji Specialist • 14+ Yrs Elite Services
+                    </p>
                   </div>
-
                 </div>
 
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="w-full bg-slate-900 hover:bg-orange-500 hover:text-white text-slate-300 font-bold py-3 rounded-xl transition text-xs border border-slate-800 hover:border-orange-500 shadow-md"
+                {/* Floating Bottom Right Badge */}
+                <div className="p-3 bg-white border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-slate-600 font-medium">
+                    <span>📅</span>
+                    <span>
+                      <strong className="text-[#0c2340]">NEXT OPENING:</strong> Today, 05:30 PM (Turf 01)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const coachesEl = document.getElementById('coaches');
+                      if (coachesEl) coachesEl.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="text-[#ff5500] hover:text-[#ea4c00] font-bold text-[11px] uppercase tracking-wider font-display cursor-pointer"
+                  >
+                    Reserve →
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 2. 4-STAT METRIC COUNTER BAR */}
+      <section className="py-8 bg-white border-b border-slate-200 w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Tile 1 */}
+            <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-[#faf8ff] flex flex-col justify-between">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 font-display">
+                🏏 CRICKETING STAFF
+              </span>
+              <p className="text-2xl sm:text-3xl font-black text-[#0c2340] font-display mb-1">500+</p>
+              <p className="text-xs text-slate-500">Verified trainers across nationwide academies</p>
+            </div>
+
+            {/* Tile 2 */}
+            <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-[#faf8ff] flex flex-col justify-between">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 font-display">
+                🏟️ ACCREDITED HUBS
+              </span>
+              <p className="text-2xl sm:text-3xl font-black text-[#0c2340] font-display mb-1">50+</p>
+              <p className="text-xs text-slate-500">Standard training centres &amp; partner grounds</p>
+            </div>
+
+            {/* Tile 3 */}
+            <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-[#faf8ff] flex flex-col justify-between">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 font-display">
+                ⚡ FLEXIBLE FORMAT
+              </span>
+              <p className="text-2xl sm:text-3xl font-black text-[#0c2340] font-display mb-1">1-on-1 &amp; Group</p>
+              <p className="text-xs text-slate-500">Flexible private mentorship or team cohort camps</p>
+            </div>
+
+            {/* Tile 4 */}
+            <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-[#faf8ff] flex flex-col justify-between">
+              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 font-display">
+                📍 REACH
+              </span>
+              <p className="text-2xl sm:text-3xl font-black text-[#0c2340] font-display mb-1">All-India</p>
+              <p className="text-xs text-slate-500">Tier 1 hubs &amp; regional sports districts</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. "MASTER EVERY DIMENSION OF ATHLETICS" (5 TAXONOMY CATEGORIES) */}
+      <section id="categories" className="py-16 sm:py-20 border-b border-slate-200 bg-[#faf8ff] scroll-mt-16 w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+            <div>
+              <span className="text-[11px] font-bold tracking-widest text-[#ff5500] uppercase font-display block mb-1">
+                DISCIPLINES OF EXCELLENCE
+              </span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0c2340] tracking-tight font-display">
+                Master Every Dimension of Athletics
+              </h2>
+            </div>
+            <p className="text-sm text-slate-600 max-w-md leading-relaxed">
+              Select a specialized training stream engineered by certified masters to prepare you for state, national, and competitive match days.
+            </p>
+          </div>
+
+          {/* 5 Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            {/* 1. Cricket */}
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Cricket Coaching"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 bg-[#0c2340] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded font-display">
+                    CRICKET PILLAR
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-xl font-black text-[#0c2340] font-display">Cricket</h3>
+                    <span className="text-slate-400">🏏</span>
+                  </div>
+                  <p className="text-xs font-bold text-[#ff5500] mb-2 uppercase tracking-wide font-display">
+                    Batting &amp; Bowling Specialisation
+                  </p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Seam release, spin drift, footwork mechanics, backfoot defense, and powerplay tempo calibrated by BCCI &amp; ICC credentialed experts.
+                  </p>
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-2 text-xs">
+                <span className="font-semibold text-slate-400">450+ Active Coaches</span>
+                <button
+                  type="button"
+                  onClick={() => handleSelectCategory('Cricket (Batting and bowling)')}
+                  className="font-bold text-[#ff5500] hover:text-[#ea4c00] flex items-center gap-1 font-display cursor-pointer"
                 >
-                  Book Coaching Session
+                  View Coaches →
                 </button>
-
               </div>
-            ))}
-          </div>
+            </div>
 
+            {/* 2. Fitness */}
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Fitness & Strength"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 bg-[#0c2340] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded font-display">
+                    STRENGTH &amp; SPEED
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-xl font-black text-[#0c2340] font-display">Fitness</h3>
+                    <span className="text-slate-400">🏋️</span>
+                  </div>
+                  <p className="text-xs font-bold text-[#ff5500] mb-2 uppercase tracking-wide font-display">
+                    Strength &amp; Conditioning
+                  </p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Multi-directional agility, rotational kinetic power, endurance thresholds, and load management designed for sport-specific stamina.
+                  </p>
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-2 text-xs">
+                <span className="font-semibold text-slate-400">120+ Trainers</span>
+                <button
+                  type="button"
+                  onClick={() => handleSelectCategory('Fitness')}
+                  className="font-bold text-[#ff5500] hover:text-[#ea4c00] flex items-center gap-1 font-display cursor-pointer"
+                >
+                  View Trainers →
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Physiotherapy */}
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Physiotherapy"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded font-display">
+                    REHAB &amp; RECOVERY
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-xl font-black text-[#0c2340] font-display">Physiotherapy</h3>
+                    <span className="text-slate-400">🩺</span>
+                  </div>
+                  <p className="text-xs font-bold text-[#ff5500] mb-2 uppercase tracking-wide font-display">
+                    Injury Management &amp; Recovery
+                  </p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Kinematic rehabilitation, joint mobility restoration, tendon strain mitigation, and return-to-play structured progression.
+                  </p>
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-2 text-xs">
+                <span className="font-semibold text-slate-400">85+ Specialists</span>
+                <button
+                  type="button"
+                  onClick={() => handleSelectCategory('Physiotherapy')}
+                  className="font-bold text-[#ff5500] hover:text-[#ea4c00] flex items-center gap-1 font-display cursor-pointer"
+                >
+                  View Physios →
+                </button>
+              </div>
+            </div>
+
+            {/* 4. Dietician */}
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Sports Dietician"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 bg-[#0c2340] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded font-display">
+                    NUTRITION
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-xl font-black text-[#0c2340] font-display">Dietician</h3>
+                    <span className="text-slate-400">🥗</span>
+                  </div>
+                  <p className="text-xs font-bold text-[#ff5500] mb-2 uppercase tracking-wide font-display">
+                    Sports Nutrition &amp; Metabolism Fueling
+                  </p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Match-day fueling strategies, hydration equilibrium, lean mass conditioning, and micronutrient regimens customized to your athletic calendar.
+                  </p>
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-2 text-xs">
+                <span className="font-semibold text-slate-400">40+ Certified Dieticians</span>
+                <button
+                  type="button"
+                  onClick={() => handleSelectCategory('Dietician')}
+                  className="font-bold text-[#ff5500] hover:text-[#ea4c00] flex items-center gap-1 font-display cursor-pointer"
+                >
+                  Consult Dieticians →
+                </button>
+              </div>
+            </div>
+
+            {/* 5. Yoga & Meditation */}
+            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Yoga and Meditation"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded font-display">
+                    FOCUS &amp; RECOVERY
+                  </div>
+                </div>
+                <div className="p-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-xl font-black text-[#0c2340] font-display">Yoga &amp; Meditation</h3>
+                    <span className="text-slate-400">🧘</span>
+                  </div>
+                  <p className="text-xs font-bold text-[#ff5500] mb-2 uppercase tracking-wide font-display">
+                    Breathwork &amp; Mental Fortitude
+                  </p>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Pranayama breath control under distress/pressure, parasympathetic resets, and deep nervous system recovery for athletes.
+                  </p>
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-0 flex items-center justify-between border-t border-slate-100 mt-2 text-xs">
+                <span className="font-semibold text-slate-400">60+ Specialized Yogis</span>
+                <button
+                  type="button"
+                  onClick={() => handleSelectCategory('Yoga and Meditation')}
+                  className="font-bold text-[#ff5500] hover:text-[#ea4c00] flex items-center gap-1 font-display cursor-pointer"
+                >
+                  Explore Yoga →
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* 4. ACADEMY TRAINING PILLARS (HOW DRONAMATE WORKS)          */}
-      {/* ========================================================= */}
-      <section id="about" className="py-24 bg-slate-950 border-b border-slate-900 scroll-mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="bg-blue-500/10 text-blue-400 border border-blue-500/30 px-3.5 py-1 rounded-full text-xs font-black tracking-wider uppercase mb-3 inline-block">
-              Academy Blueprint
-            </span>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-              A Complete Cricket Development Ecosystem
-            </h2>
-            <p className="text-slate-400 text-base md:text-lg mt-3">
-              We bridge the gap between net practice and match-day performance through 4 core pillars.
-            </p>
+      {/* 4. "VERIFIED TRAINERS SPOTLIGHT" & LIVE SEARCH FEED */}
+      <section id="coaches" className="py-16 sm:py-20 bg-white border-b border-slate-200 scroll-mt-16 w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase tracking-wider mb-2 font-display">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                REAL-TIME CALENDAR CAPACITY
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0c2340] tracking-tight font-display">
+                Verified Trainers Spotlight
+              </h2>
+            </div>
+
+            {/* Filter pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              {['ALL ROSTER', 'Cricket', 'S&C / Fitness', 'Physio'].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => {
+                    setSpotlightFilter(chip);
+                    if (chip === 'Cricket') setSelectedCategoryFilter('Cricket (Batting and bowling)');
+                    else if (chip === 'S&C / Fitness') setSelectedCategoryFilter('Fitness');
+                    else if (chip === 'Physio') setSelectedCategoryFilter('Physiotherapy');
+                    else setSelectedCategoryFilter('ALL');
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition border cursor-pointer font-display ${
+                    spotlightFilter === chip
+                      ? 'bg-[#ff5500] text-white border-[#ff5500]'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-orange-500/50 transition-all hover:-translate-y-1">
-              <div className="w-12 h-12 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center justify-center text-2xl mb-5">
-                🏏
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">1. 1-on-1 Net Masterclasses</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Connect directly with certified coaches for personalized net sessions, high-speed camera technical reviews, and immediate grip adjustments.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-blue-500/50 transition-all hover:-translate-y-1">
-              <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center text-2xl mb-5">
-                📊
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">2. Pace vs Spin Data Splits</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Log every dismissal and ball faced to identify exactly where your strike rate drops and train targeted solutions before your next tournament match.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-purple-500/50 transition-all hover:-translate-y-1">
-              <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center justify-center text-2xl mb-5">
-                🧠
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">3. Match Situation Readiness</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Master powerplay tempo, middle-overs strike rotation, and death-over boundary hitting with scenario-based coaching drills.
-              </p>
-            </div>
-
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition-all hover:-translate-y-1">
-              <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center text-2xl mb-5">
-                ⚡
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2">4. Physical & Biometric Logs</h3>
-              <p className="text-slate-400 text-xs leading-relaxed">
-                Track daily sleep, soreness, readiness, and hydration to ensure your bat speed and reaction time are primed when stepping onto the pitch.
-              </p>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-      {/* ========================================================= */}
-      {/* 5. ATHLETE TESTIMONIALS & TRANSFORMATION STORIES          */}
-      {/* ========================================================= */}
-      <section className="py-24 bg-slate-900 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-3.5 py-1 rounded-full text-xs font-black tracking-wider uppercase mb-3 inline-block">
-              Proven Results
-            </span>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
-              Champions in the Making
-            </h2>
-          </div>
-
+          {/* 3 Spotlight Featured Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 relative">
-              <div className="text-amber-400 text-sm mb-3">★★★★★</div>
-              <p className="text-slate-300 text-xs leading-relaxed italic mb-6">
-                "Breaking down my strike rate against left-arm spin completely changed my game. Coach Vikram showed me how my front foot was falling across, and within 3 weeks my club average jumped by 14 runs."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm text-white">AS</div>
-                <div>
-                  <h4 className="font-bold text-sm text-white">Aryan Sharma</h4>
-                  <p className="text-slate-500 text-[11px]">Shivaji Park Gymkhana, Mumbai</p>
+            {/* Card 1: Arvind Nambiar */}
+            <div className="bg-[#faf8ff] border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Arvind Nambiar"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 font-display">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    AVAILABLE TODAY
+                  </div>
+                  <div className="absolute bottom-3 left-3 text-white">
+                    <h4 className="font-extrabold text-base font-display">Arvind Nambiar ✔</h4>
+                    <p className="text-[10px] text-slate-200 uppercase tracking-wider font-semibold font-display">
+                      BCCI LEVEL 3 • FAST BOWLERS
+                    </p>
+                  </div>
                 </div>
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-amber-500 font-bold">★ 4.98 (120 reviews)</span>
+                    <span className="text-slate-500">Bengaluru • Online</span>
+                  </div>
+                  <p className="text-xs text-slate-600 line-clamp-2">
+                    12+ years nurturing national pacers; active biomechanics alignment, seam velocity optimization and release calibration.
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 pt-0 flex items-center justify-between border-t border-slate-200 mt-2">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold font-display">RATE</span>
+                  <span className="text-sm font-black text-[#0c2340] font-display">₹2,200 / session</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleStartTraining}
+                  className="bg-[#ff5500] hover:bg-[#ea4c00] text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow-sm font-display cursor-pointer min-h-[38px]"
+                >
+                  Book Session
+                </button>
               </div>
             </div>
 
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 relative">
-              <div className="text-amber-400 text-sm mb-3">★★★★★</div>
-              <p className="text-slate-300 text-xs leading-relaxed italic mb-6">
-                "Having direct calendar booking with Coach Rahul Dravid was a game changer. The Batsman Card keeps all my pace vs spin data organized without messy notes."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold text-sm text-white">KV</div>
-                <div>
-                  <h4 className="font-bold text-sm text-white">Kabir Verma</h4>
-                  <p className="text-slate-500 text-[11px]">Wankhede Cricket Academy</p>
+            {/* Card 2: Pooja Deshmukh */}
+            <div className="bg-[#faf8ff] border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Pooja Deshmukh"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 font-display">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    AVAILABLE TODAY
+                  </div>
+                  <div className="absolute bottom-3 left-3 text-white">
+                    <h4 className="font-extrabold text-base font-display">Pooja Deshmukh ✔</h4>
+                    <p className="text-[10px] text-slate-200 uppercase tracking-wider font-semibold font-display">
+                      CSCS • ATHLETIC S&amp;C COACH
+                    </p>
+                  </div>
                 </div>
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-amber-500 font-bold">★ 4.92 (94 reviews)</span>
+                    <span className="text-slate-500">Mumbai • Hybrid</span>
+                  </div>
+                  <p className="text-xs text-slate-600 line-clamp-2">
+                    Specialist in explosive power, kinetic deceleration, speed mechanics, and match conditioning for field-sport contenders.
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 pt-0 flex items-center justify-between border-t border-slate-200 mt-2">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold font-display">RATE</span>
+                  <span className="text-sm font-black text-[#0c2340] font-display">₹1,600 / session</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleStartTraining}
+                  className="bg-[#ff5500] hover:bg-[#ea4c00] text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow-sm font-display cursor-pointer min-h-[38px]"
+                >
+                  Book Session
+                </button>
               </div>
             </div>
 
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 relative">
-              <div className="text-amber-400 text-sm mb-3">★★★★★</div>
-              <p className="text-slate-300 text-xs leading-relaxed italic mb-6">
-                "As an academy director, DronaMate gives my coaches a unified portal to manage slots, review batsman cards, and track athlete progress in one place."
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center font-bold text-sm text-white">SS</div>
-                <div>
-                  <h4 className="font-bold text-sm text-white">Sameer Sen</h4>
-                  <p className="text-slate-500 text-[11px]">Delhi Premier League Coach</p>
+            {/* Card 3: Dr. Kabir Rathore */}
+            <div className="bg-[#faf8ff] border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-900">
+                  <img
+                    src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                    alt="Dr. Kabir Rathore"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 font-display">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                    AVAILABLE TODAY
+                  </div>
+                  <div className="absolute bottom-3 left-3 text-white">
+                    <h4 className="font-extrabold text-base font-display">Dr. Kabir Rathore ✔</h4>
+                    <p className="text-[10px] text-slate-200 uppercase tracking-wider font-semibold font-display">
+                      CHIEF PHYSIO • REHAB SPECIALIST
+                    </p>
+                  </div>
+                </div>
+                <div className="p-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-amber-500 font-bold">★ 4.99 (210 reviews)</span>
+                    <span className="text-slate-500">Delhi-NCR • Clinic</span>
+                  </div>
+                  <p className="text-xs text-slate-600 line-clamp-2">
+                    Ex-State cricket team physio. Rotator cuff recovery, lower back stress fracture rehabilitation, and mobility return protocols.
+                  </p>
                 </div>
               </div>
+              <div className="p-4 pt-0 flex items-center justify-between border-t border-slate-200 mt-2">
+                <div>
+                  <span className="text-[10px] text-slate-400 block font-bold font-display">RATE</span>
+                  <span className="text-sm font-black text-[#0c2340] font-display">₹2,500 / session</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleStartTraining}
+                  className="bg-[#ff5500] hover:bg-[#ea4c00] text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow-sm font-display cursor-pointer min-h-[38px]"
+                >
+                  Book Session
+                </button>
+              </div>
             </div>
+          </div>
 
+          {/* Complete Live Directory Feed */}
+          <div className="pt-8">
+            <CoachSearchFeed defaultCategory={selectedCategoryFilter} />
           </div>
 
         </div>
       </section>
 
-      {/* ========================================================= */}
-      {/* 6. CALL TO ACTION BANNER: ENROLLMENT                      */}
-      {/* ========================================================= */}
-      <section className="py-24 relative overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950">
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <div className="bg-slate-900/90 border border-slate-800 p-8 md:p-14 rounded-3xl shadow-2xl relative overflow-hidden">
-            
-            <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 blur-[80px] pointer-events-none rounded-full"></div>
-
-            <span className="bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-4 inline-block">
-              Elevate Your Match Performance
+      {/* 5. "HOW DRONAMATE WORKS" */}
+      <section id="blueprint" className="py-16 sm:py-20 bg-[#faf8ff] border-b border-slate-200 scroll-mt-16 w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-[11px] font-bold tracking-widest text-[#ff5500] uppercase font-display block mb-1">
+              TRAINING ECOSYSTEM BLUEPRINT
             </span>
-            
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-4">
-              Your Journey to Cricket Mastery Starts Today.
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0c2340] tracking-tight font-display mb-3">
+              How Dronamate Works
             </h2>
-            
-            <p className="text-sm md:text-base text-slate-400 max-w-xl mx-auto mb-8">
-              Whether you are an aspiring top-order batsman, a club captain, or a certified coach, DronaMate provides the professional infrastructure to reach your peak.
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+              From discovery to pitch execution: a structured journey built around your specific athletic schedule and ambition.
             </p>
+          </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button 
-                onClick={() => navigate('/register')}
-                className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-black px-8 py-4 rounded-xl transition text-sm shadow-xl shadow-orange-500/25"
-              >
-                Create Free Athlete Account
-              </button>
-              <button 
-                onClick={() => navigate('/login')}
-                className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-bold px-8 py-4 rounded-xl transition text-sm border border-slate-700"
-              >
-                Sign In to Portal
-              </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Step 1 */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-2xl font-black text-[#ff5500] font-display block mb-4">01</span>
+                <h3 className="text-base font-bold text-[#0c2340] font-display mb-2">Browse &amp; Match</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Filter by sport discipline, accreditation tier (ICC, BCCI, CSCS), location, fee spectrum, and verified athlete reviews.
+                </p>
+              </div>
+              <div className="pt-4 border-t border-slate-100 mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
+                SEARCHING SPECIALISTS
+              </div>
             </div>
 
+            {/* Step 2 */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-2xl font-black text-[#ff5500] font-display block mb-4">02</span>
+                <h3 className="text-base font-bold text-[#0c2340] font-display mb-2">Online or Offline</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Train in-person at one of our 50+ standard training centres or book interactive video consultations wherever you are.
+                </p>
+              </div>
+              <div className="pt-4 border-t border-slate-100 mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
+                HYBRID ACCESSIBILITY
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-2xl font-black text-[#ff5500] font-display block mb-4">03</span>
+                <h3 className="text-base font-bold text-[#0c2340] font-display mb-2">1-on-1 or Group</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Lock in your individual slot for intensive personal attention or join high-intensity small cohort academy drills.
+                </p>
+              </div>
+              <div className="pt-4 border-t border-slate-100 mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
+                TAILORED CAPACITY FORMAT
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-2xl font-black text-[#ff5500] font-display block mb-4">04</span>
+                <h3 className="text-base font-bold text-[#0c2340] font-display mb-2">Elevate Performance</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Receive drill homework, feedback customized drill assignments, and systematic progression milestones to dominate the field.
+                </p>
+              </div>
+              <div className="pt-4 border-t border-slate-100 mt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400 font-display">
+                CHAMPION RESULTS
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. BOTTOM CTA BANNER */}
+      <section className="py-16 bg-[#faf8ff] w-full overflow-x-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-[#0c2340] text-white rounded-2xl p-6 sm:p-10 md:p-12 border border-slate-800 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="space-y-3 max-w-2xl text-center lg:text-left">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[#ff5500] font-display">
+                HIT STRIDE ON THE FIELD
+              </span>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white font-display">
+                Ready to transform your athletic journey?
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Book your first session with an accredited coach today. Available offline across 50+ facilities in India and online nationwide.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('coaches');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="w-full sm:w-auto bg-[#ff5500] hover:bg-[#ea4c00] text-white font-black px-7 py-3.5 rounded-lg text-sm transition shadow-md shadow-[#ff5500]/25 font-display cursor-pointer min-h-[44px]"
+              >
+                Find Your Trainer
+              </button>
+              <a
+                href="tel:+918219486269"
+                className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-3.5 rounded-lg text-sm border border-slate-700 transition flex items-center justify-center gap-2 font-display min-h-[44px]"
+              >
+                <span>📞</span>
+                <span>+91 8219486269</span>
+              </a>
+            </div>
           </div>
         </div>
       </section>
